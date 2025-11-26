@@ -23,6 +23,7 @@ class MessageResponse(BaseModel):
 
     response: str
     session_id: str
+    thoughts: list[dict[str, str]] = []
 
 
 @router.post("/{session_id}/messages", response_model=MessageResponse)
@@ -50,16 +51,21 @@ async def send_message(
     """
     try:
         service = SessionService(db)
-        response_text = await service.send_message(session_id, request.message)
+        try:
+            result = await service.send_message(session_id, request.message)
+        except ValueError as ve:
+            # Session not found
+            print(f"Session not found: {ve}")
+            raise HTTPException(status_code=404, detail=str(ve))
+        except Exception as e:
+            # Log unexpected errors
+            print(f"Error processing message: {e}")
+            raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
 
         return MessageResponse(
-            response=response_text,
+            response=result["response"],
+            thoughts=result.get("thoughts", []),
             session_id=str(session_id),
         )
-
-    except Exception as e:
-        # In production, log the error properly
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error processing message: {str(e)}",
-        )
+    except HTTPException:
+        raise

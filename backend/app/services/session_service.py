@@ -1,5 +1,6 @@
 """Session service for high-level business logic orchestration."""
 
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -72,7 +73,7 @@ class SessionService:
 
         return self._runners[session_id]
 
-    async def send_message(self, session_id: UUID, message: str) -> str:
+    async def send_message(self, session_id: UUID, message: str) -> dict[str, Any]:
         """
         Send a message to the agent and get response.
 
@@ -86,8 +87,8 @@ class SessionService:
             message: User message
 
         Returns:
-            Agent response text
+            Dictionary containing 'response' text and 'thoughts' list
         """
         runner = await self.get_runner(session_id)
-        response = await runner.run(message)
-        return response
+        result = await runner.run(message)
+        return result
