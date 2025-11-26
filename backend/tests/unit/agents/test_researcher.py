@@ -39,7 +39,23 @@ def test_researcher_has_tools() -> None:
     """Test that researcher agent has tools configured."""
     from backend.app.agents.researcher import researcher
 
-    # Initially may not have tools, but should have the tools attribute
+    # Should have tools attribute and it should be populated
     assert hasattr(researcher, "tools")
-    # Tools list should be a list (empty or populated)
     assert isinstance(researcher.tools, list)
+    assert len(researcher.tools) > 0
+
+
+def test_researcher_has_wikipedia_tool() -> None:
+    """Test that researcher has wikipedia_search tool."""
+    from backend.app.agents.researcher import researcher
+
+    tool_names = [t.__name__ for t in researcher.tools]
+    assert "wikipedia_search" in tool_names
+
+
+def test_researcher_has_append_to_state_tool() -> None:
+    """Test that researcher has append_to_state tool."""
+    from backend.app.agents.researcher import researcher
+
+    tool_names = [t.__name__ for t in researcher.tools]
+    assert "append_to_state" in tool_names

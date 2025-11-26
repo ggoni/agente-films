@@ -3,6 +3,7 @@
 from typing import Any
 
 from backend.app.agents.base import get_model_name
+from backend.app.agents.tools import append_to_state, wikipedia_search
 
 
 class ResearcherAgent:
@@ -32,7 +33,7 @@ When researching:
 - Suggest related historical figures or events that could enrich the story
 
 Always structure your research clearly and cite your sources."""
-    tools: list[Any] = []
+    tools: list[Any] = [wikipedia_search, append_to_state]
 
 
 # Create instance
