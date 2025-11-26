@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.db.base import Base
 
+# Import all models to register them with Base.metadata
+from backend.app.db.models import Answer, Question, Session as SessionModel, SessionState  # noqa: F401
+
 
 @pytest.fixture(scope="function")
 def db_engine() -> Generator[Engine, None, None]:

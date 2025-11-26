@@ -45,3 +45,35 @@ class SessionResponse(SessionBase):
             }
         },
     )
+
+
+# Question Schemas
+class QuestionCreate(BaseModel):
+    """Schema for creating a new Question."""
+
+    session_id: UUID
+    question_text: str
+    agent_name: str | None = None
+    question_metadata: dict[str, Any] | None = None
+
+
+# Answer Schemas
+class AnswerCreate(BaseModel):
+    """Schema for creating a new Answer."""
+
+    session_id: UUID
+    question_id: UUID | None = None
+    agent_name: str
+    answer_text: str
+    answer_metadata: dict[str, Any] | None = None
+
+
+# SessionState Schemas
+class SessionStateCreate(BaseModel):
+    """Schema for creating a SessionState snapshot."""
+
+    session_id: UUID
+    state_key: str
+    state_value: dict[str, Any]
+    version: int = 1
+
