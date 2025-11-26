@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.app.api.routers import sessions
 from backend.app.config import Settings
 
 # Initialize settings
@@ -24,6 +25,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(sessions.router)
 
 
 @app.get("/health")
@@ -50,3 +54,4 @@ async def root() -> dict[str, str]:
         "version": "1.0.0",
         "docs": "/docs",
     }
+
