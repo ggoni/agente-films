@@ -16,6 +16,7 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "psycopg2-binary>=2.9.11",
     "wikipedia>=1.4.0",
+    "alembic>=1.13.0",
 ]
 
 [project.optional-dependencies]
