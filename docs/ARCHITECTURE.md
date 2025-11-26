@@ -1,25 +1,144 @@
-└──────────────────────┬──────────────────────────────────────┘
-                       │ HTTP/REST
-┌──────────────────────▼──────────────────────────────────────┐
-│                     FastAPI Backend                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │   Routes     │─▶│  Repository  │─▶│  ADK Agents  │     │
-│  └──────────────┘  └──────────────┘  └──────┬───────┘     │
-└─────────────────────────────────────────────┼──────────────┘
-                                              │
-                       ┌──────────────────────┼──────────────┐
-                       │                      ▼              │
-                       │            LiteLLM Proxy            │
-                       │                      │              │
-                       └──────────────────────┼──────────────┘
-                                              │
-                    ┌─────────────────────────┼──────────────┐
-                    │                         ▼              │
-                    │  ┌──────────┐  ┌──────────┐           │
-                    │  │  Gemini  │  │  GPT-4   │  ...      │
-                    │  └──────────┘  └──────────┘           │
-                    └───────────────────────────────────────┘
+# System Architecture
+
+## Overview
+
+Agente Films is a multi-agent filmmaking system designed to automate the creation of film pitch documents. It leverages Google's Agent Development Kit (ADK) for agent orchestration, FastAPI for the backend API, and a React frontend for user interaction.
+
+## System Context
+
+The following diagram illustrates the high-level system context and interactions between components.
+
+```mermaid
+graph TB
+    User[User]
+    
+    subgraph "Agente Films System"
+        Frontend[React Frontend]
+        API[FastAPI Backend]
+        DB[(PostgreSQL)]
+        
+        subgraph "Agent Layer"
+            Runner[ADK Runner]
+            Agents[ADK Agents]
+        end
+    end
+    
+    LLM[LiteLLM Proxy]
+    Vertex[Vertex AI / Gemini]
+    
+    User -->|Interacts| Frontend
+    Frontend -->|HTTP/REST| API
+    Frontend -->|WebSocket| API
+    
+    API -->|Reads/Writes| DB
+    API -->|Orchestrates| Runner
+    
+    Runner -->|Executes| Agents
+    Agents -->|Inference| LLM
+    LLM -->|API Calls| Vertex
 ```
+
+## Component Architecture
+
+### Backend (FastAPI)
+
+The backend follows a clean architecture pattern with distinct layers:
+
+1.  **API Layer (`app/api`)**: Handles HTTP requests, validation (Pydantic), and routing.
+2.  **Service Layer (`app/services`)**: Implements business logic and orchestrates components.
+3.  **Core Layer (`app/core`)**: Contains the ADK Runner and Session Manager.
+4.  **Data Layer (`app/db`)**: Manages database interactions via SQLAlchemy repositories.
+
+### Agent Execution Flow
+
+When a user sends a message, the following sequence occurs:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API as FastAPI Endpoint
+    participant Service as SessionService
+    participant Runner as ADKRunner
+    participant DB as PersistenceService
+    participant Agent as ADK Agent
+
+    User->>API: POST /sessions/{id}/messages
+    API->>Service: send_message(id, content)
+    
+    Service->>Runner: get_runner(id)
+    activate Runner
+    Runner-->>Service: runner_instance
+    deactivate Runner
+    
+    Service->>Runner: run(content)
+    activate Runner
+    
+    Runner->>DB: save_question(content)
+    Runner->>Agent: run_async(content)
+    activate Agent
+    Agent-->>Runner: response_text
+    deactivate Agent
+    
+    Runner->>DB: save_answer(response_text)
+    Runner-->>Service: response_text
+    deactivate Runner
+    
+    Service-->>API: response_text
+    API-->>User: JSON Response
+```
+
+## Data Model
+
+The database schema is designed to support long-running sessions and persistent agent state.
+
+```mermaid
+erDiagram
+    Session ||--o{ SessionState : has
+    Session ||--o{ Question : contains
+    Session ||--o{ Answer : contains
+    
+    Session {
+        uuid id PK
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SessionState {
+        uuid id PK
+        uuid session_id FK
+        jsonb state_data
+        timestamp created_at
+    }
+    
+    Question {
+        uuid id PK
+        uuid session_id FK
+        string content
+        string agent_name
+        timestamp created_at
+    }
+    
+    Answer {
+        uuid id PK
+        uuid session_id FK
+        uuid question_id FK
+        string content
+        string agent_name
+        timestamp created_at
+    }
+```
+
+## Key Components
+
+### Session Manager
+Manages the lifecycle of ADK sessions, ensuring they are cached in memory for performance while persisting state to the database for durability.
+
+### ADK Runner
+Wraps the Google ADK `Runner` class. It intercepts messages to provide automatic persistence of the conversation history (Questions & Answers) and synchronizes the agent's internal state with the `SessionState` table.
+
+### Persistence Service
+Abstracts all database operations related to session history and state, providing a clean interface for the Runner to save data without direct dependency on SQLAlchemy models.
 
 ## Components
 
@@ -37,17 +156,6 @@
 - Session state management
 - Tool integration
 - Agent composition (Sequential, Loop, Parallel)
-
-**Example**:
-```python
-agent = Agent(
-    name="screenplay_writer",
-    model="gemini-2.5-flash",
-    description="Expert in screenplay structure",
-    instruction="Create three-act structure...",
-    tools=[save_to_state],
-)
-```
 
 ### 2. FastAPI Backend
 
@@ -78,19 +186,6 @@ agent = Agent(
 - Easy to test with mocks
 - Swappable implementations
 
-**Example**:
-```python
-class ScreenplayRepository(ABC):
-    @abstractmethod
-    async def generate_outline(self, concept: str) -> dict:
-        pass
-
-class ADKScreenplayRepository(ScreenplayRepository):
-    async def generate_outline(self, concept: str) -> dict:
-        agent = self._get_agent()
-        return await agent.create_outline(concept)
-```
-
 ### 3. LiteLLM Proxy
 
 **Purpose**: Unified interface for multiple LLM providers
@@ -102,17 +197,6 @@ class ADKScreenplayRepository(ScreenplayRepository):
 - Cost tracking
 - Observability (Langfuse integration)
 
-**Configuration**:
-```yaml
-model_list:
-  - model_name: gemini-2.5-flash
-    litellm_params:
-      model: vertex_ai/gemini-2.5-flash
-  - model_name: gpt-4
-    litellm_params:
-      model: openai/gpt-4
-```
-
 ### 4. Frontend (React)
 
 **Purpose**: User interface for agent interaction
@@ -122,110 +206,47 @@ model_list:
 - `useScreenplay`: Custom hook for API calls
 - Type-safe API clients
 
-**Example**:
-```typescript
-const { screenplay, loading, generateScreenplay } = useScreenplay();
-
-await generateScreenplay({
-  concept: "Story idea...",
-  model: "gemini-2.5-flash"
-});
-```
-
 ## Data Flow
 
 ### Screenplay Generation Flow
 
-1. **User Input**: Frontend submits concept
-2. **API Validation**: Pydantic validates request
-3. **Repository**: Selects/creates agent
-4. **Agent Execution**: ADK agent processes request
-5. **LLM Call**: Via LiteLLM proxy to provider
-6. **Response Processing**: Agent structures output
-7. **API Response**: Returns to frontend
-
-```
-User → Frontend → FastAPI → Repository → ADK Agent → LiteLLM → LLM Provider
-                                           ↓
-                                    Session State
-```
+1.  **User Input**: Frontend submits concept
+2.  **API Validation**: Pydantic validates request
+3.  **Repository**: Selects/creates agent
+4.  **Agent Execution**: ADK agent processes request
+5.  **LLM Call**: Via LiteLLM proxy to provider
+6.  **Response Processing**: Agent structures output
+7.  **API Response**: Returns to frontend
 
 ### Multi-Agent Workflow
 
-1. **Workflow Definition**: SequentialAgent with sub-agents
-2. **Sequential Execution**: Each agent runs in order
-3. **State Sharing**: Via session state dictionary
-4. **Tool Calls**: Agents use tools to save data
-5. **Final Output**: Aggregated results
-
-```
-Concept Analyzer → Character Developer → Screenplay Writer
-        ↓                  ↓                    ↓
-    [state]            [state]              [state]
-```
+1.  **Workflow Definition**: SequentialAgent with sub-agents
+2.  **Sequential Execution**: Each agent runs in order
+3.  **State Sharing**: Via session state dictionary
+4.  **Tool Calls**: Agents use tools to save data
+5.  **Final Output**: Aggregated results
 
 ## Design Patterns
 
 ### 1. Repository Pattern
-
 **Problem**: Tight coupling between API and data source
-
 **Solution**: Abstract interface for data access
-
-**Benefits**:
-- Easy to test (mock repository)
-- Swappable implementations
-- Clean separation of concerns
+**Benefits**: Easy to test, swappable implementations
 
 ### 2. Dependency Injection
-
 **Problem**: Hard-coded dependencies
-
 **Solution**: FastAPI's Depends()
-
-**Benefits**:
-- Testable (inject mocks)
-- Flexible configuration
-- Clear dependencies
+**Benefits**: Testable, flexible configuration
 
 ### 3. Strategy Pattern
-
 **Problem**: Multiple algorithm variants
-
 **Solution**: Agent composition (Sequential, Loop, Parallel)
-
-**Benefits**:
-- Flexible workflows
-- Reusable agents
-- Easy to extend
+**Benefits**: Flexible workflows, reusable agents
 
 ### 4. Factory Pattern
-
 **Problem**: Complex object creation
-
 **Solution**: Repository creates/caches agents
-
-**Benefits**:
-- Centralized agent management
-- Efficient resource usage
-- Consistent configuration
-
-## Testing Strategy
-
-### Unit Tests
-- Test individual components in isolation
-- Mock external dependencies
-- Fast execution (<1s)
-
-### Integration Tests
-- Test component interactions
-- Mock LLM responses
-- Medium execution (~5s)
-
-### E2E Tests
-- Test complete workflows
-- May use real LLM (marked as slow)
-- Slow execution (>30s)
+**Benefits**: Centralized agent management, efficient resource usage
 
 ## Security
 
@@ -248,14 +269,12 @@ Concept Analyzer → Character Developer → Screenplay Writer
 ## Performance
 
 ### Optimization Strategies
-
-1. **Agent Caching**: Repository caches agent instances
-2. **Async/Await**: Non-blocking I/O throughout
-3. **Connection Pooling**: LiteLLM handles connections
-4. **Docker Multi-stage**: Smaller images, faster deploys
+1.  **Agent Caching**: Repository caches agent instances
+2.  **Async/Await**: Non-blocking I/O throughout
+3.  **Connection Pooling**: LiteLLM handles connections
+4.  **Docker Multi-stage**: Smaller images, faster deploys
 
 ### Monitoring
-
 - **Health Checks**: `/health` endpoint
 - **Logging**: Structured logging throughout
 - **Observability**: Langfuse for LLM calls
@@ -264,9 +283,8 @@ Concept Analyzer → Character Developer → Screenplay Writer
 ## Scalability
 
 ### Horizontal Scaling
-```bash
-docker-compose up -d --scale api=3
-```
+- Docker Compose scaling
+- Kubernetes (see KUBERNETES_ARCHITECTURE.md)
 
 ### Load Balancing
 - LiteLLM handles LLM provider balancing
@@ -275,36 +293,7 @@ docker-compose up -d --scale api=3
 ### State Management
 - Session state per request
 - Stateless API design
-- Database for persistence (future)
-
-## Configuration
-
-### Environment-based
-- Development: `.env` file
-- Production: Environment variables
-- Docker: `.env` + `docker-compose.yml`
-
-### Model Configuration
-- LiteLLM config file
-- Agent model parameter
-- Repository model selection
-
-## Error Handling
-
-### API Level
-- HTTP status codes
-- Error response models
-- Exception handling
-
-### Agent Level
-- Graceful degradation
-- Retry logic (via LiteLLM)
-- Timeout handling
-
-### Frontend Level
-- Error states
-- User feedback
-- Retry mechanisms
+- Database for persistence
 
 ## Future Enhancements
 
