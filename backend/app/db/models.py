@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Column, DateTime, String, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy import Column, DateTime, JSON, String, text
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.db.base import Base
@@ -37,7 +37,7 @@ class Session(Base):
 
     session_metadata: Mapped[dict[str, Any] | None] = mapped_column(
         "metadata",
-        JSONB,
+        JSON,
         nullable=True,
         comment="Additional session metadata stored as JSON",
     )
