@@ -28,6 +28,25 @@ uv run pre-commit install
 
 ## Development Workflow
 
+```mermaid
+graph LR
+    Code[Write Code] --> Lint[Lint & Format]
+    Lint --> Test[Run Tests]
+    Test --> Local[Local Verify]
+    Local --> Commit[Commit & Push]
+    Commit --> CI[CI Pipeline]
+    
+    subgraph "Inner Loop (Fast)"
+    Code
+    Lint
+    Test
+    end
+    
+    style Code fill:#bbdefb
+    style Lint fill:#fff9c4
+    style Test fill:#c8e6c9
+```
+
 ### Local Development
 
 ```bash

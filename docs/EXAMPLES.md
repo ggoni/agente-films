@@ -439,6 +439,26 @@ class TestCharacterRoutes:
 
 ### Sequential Workflow
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Workflow as ScreenplayWorkflow
+    participant Concept as Concept Analyzer
+    participant Char as Character Dev
+    participant Writer as Screenplay Writer
+    
+    User->>Workflow: Run(concept)
+    Workflow->>Concept: Analyze(concept)
+    Concept-->>Workflow: Analysis Result
+    
+    Workflow->>Char: Create Characters(analysis)
+    Char-->>Workflow: Character Profiles
+    
+    Workflow->>Writer: Write Script(concept, chars)
+    Writer-->>Workflow: Final Screenplay
+    Workflow-->>User: Complete Result
+```
+
 **File: `src/agents/screenplay_workflow.py`**
 
 ```python

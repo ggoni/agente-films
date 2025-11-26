@@ -23,31 +23,39 @@ Comprehensive PostgreSQL database design for ADK session state management, agent
 
 ### Data Model
 
-```
-users
-  ├── sessions (ADK conversation sessions)
-  │     ├── questions (user inputs)
-  │     │     ├── inferential_reasoning (agent thinking)
-  │     │     └── answers (agent outputs)
-  │     ├── events (partitioned by month)
-  │     ├── agent_transfers
-  │     ├── state_snapshots
-  │     └── film_projects
-  └── film_projects
+```mermaid
+erDiagram
+    USERS ||--o{ SESSIONS : creates
+    SESSIONS ||--o{ QUESTIONS : contains
+    SESSIONS ||--o{ EVENTS : tracks
+    SESSIONS ||--o{ AGENT_TRANSFERS : records
+    SESSIONS ||--o{ STATE_SNAPSHOTS : snapshots
+    SESSIONS ||--o{ FILM_PROJECTS : generates
+    
+    QUESTIONS ||--o{ INFERENTIAL_REASONING : triggers
+    INFERENTIAL_REASONING ||--o{ ANSWERS : produces
+    QUESTIONS ||--o{ ANSWERS : has
+
+    SESSIONS {
+        uuid id PK
+        jsonb state
+    }
 ```
 
 ### Core Workflow Pattern
 
-```
-Question (User Input)
-    ├── Inferential Reasoning (Researcher Agent)
-    │   └── State Delta: {"research": [...]}
-    ├── Inferential Reasoning (Screenwriter Agent)
-    │   └── State Delta: {"PLOT_OUTLINE": "..."}
-    ├── Inferential Reasoning (Critic Agent)
-    │   └── State Delta: {"CRITICAL_FEEDBACK": "..."}
-    └── Answer (File Writer Agent)
-        └── Content: "Plot saved to file..."
+```mermaid
+graph TD
+    Q[Question User Input] --> R1[Inferential Reasoning Researcher]
+    Q --> R2[Inferential Reasoning Screenwriter]
+    Q --> R3[Inferential Reasoning Critic]
+    
+    R1 -->|State Delta: research| S1(State Update)
+    R2 -->|State Delta: PLOT_OUTLINE| S1
+    R3 -->|State Delta: CRITICAL_FEEDBACK| S1
+    
+    S1 --> A[Answer File Writer Agent]
+    A -->|Content: Plot saved| End[Output]
 ```
 
 ## Key Design Decisions

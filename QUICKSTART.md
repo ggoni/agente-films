@@ -4,6 +4,17 @@
 
 ### 1. Install Dependencies
 
+```mermaid
+graph LR
+    Install[Install uv] --> Sync[Sync Dependencies]
+    Sync --> Env[Config Env]
+    Env --> DB[Start DB]
+    DB --> Run[Run App]
+    
+    style Install fill:#e1f5fe
+    style Run fill:#c8e6c9
+```
+
 ```bash
 # Install uv (if not already installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh

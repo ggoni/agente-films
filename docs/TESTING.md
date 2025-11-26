@@ -10,6 +10,42 @@
 
 ## Test Structure
 
+### Testing Pyramid
+
+```mermaid
+graph TD
+    E2E[E2E Tests<br/>(Slow, High Confidence)]
+    INT[Integration Tests<br/>(Medium Speed, Component Interaction)]
+    UNIT[Unit Tests<br/>(Fast, Isolated Logic)]
+    
+    E2E --> INT
+    INT --> UNIT
+    
+    style E2E fill:#ffcdd2
+    style INT fill:#fff9c4
+    style UNIT fill:#c8e6c9
+```
+
+### Test Workflow
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Local as Local Env
+    participant CI as GitHub Actions
+    
+    Dev->>Local: Run Unit Tests
+    Local-->>Dev: Pass/Fail
+    
+    Dev->>Local: Run Integration Tests
+    Local-->>Dev: Pass/Fail
+    
+    Dev->>CI: Push Code
+    CI->>CI: Run Lint & Type Check
+    CI->>CI: Run All Tests
+    CI-->>Dev: Build Status
+```
+
 ```
 tests/
 ├── conftest.py           # Shared fixtures
