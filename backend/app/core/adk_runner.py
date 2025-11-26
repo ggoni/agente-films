@@ -59,9 +59,9 @@ class ADKRunner:
             "initialized": True,
         }
 
-    async def send_message(self, message: str) -> str:
+    async def run(self, message: str) -> str:
         """
-        Send message to agent and get response.
+        Run agent workflow with message.
 
         Saves question to persistence, executes agent workflow,
         and saves answer to persistence.
@@ -74,7 +74,7 @@ class ADKRunner:
 
         Note:
             In production with actual Google ADK:
-            response = await self.runner.run(message)
+            response = await self.runner.run_async(message)
             return response.text
         """
         if not self.runner:
@@ -89,6 +89,7 @@ class ADKRunner:
 
         # Placeholder: Execute agent workflow
         # In production, this would call the actual ADK runner
+        # response = await self.runner.run_async(message)
         response_text = f"Processed: {message}"
 
         # Save answer to database

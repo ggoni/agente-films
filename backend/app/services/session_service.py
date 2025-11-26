@@ -57,6 +57,11 @@ class SessionService:
             ADKRunner instance for the session
         """
         if session_id not in self._runners:
+            # Verify session exists in database
+            session = self.session_repository.get_by_id(session_id)
+            if not session:
+                raise ValueError(f"Session {session_id} not found")
+
             runner = ADKRunner(
                 session_id=session_id,
                 session_manager=self.session_manager,
@@ -84,5 +89,5 @@ class SessionService:
             Agent response text
         """
         runner = await self.get_runner(session_id)
-        response = await runner.send_message(message)
+        response = await runner.run(message)
         return response
