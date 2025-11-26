@@ -1,0 +1,479 @@
+# Development Guidelines Summary
+
+## Overview
+
+Complete development setup for multi-agent filmmaking system with:
+- Google ADK agents
+- LiteLLM proxy integration
+- FastAPI backend with repository pattern
+- React/TypeScript frontend
+- Comprehensive testing (unit, integration, E2E)
+- CI/CD pipeline
+- Docker deployment
+
+## Project Structure
+
+```
+agente-films/
+├── src/
+│   ├── agents/              # ADK agents (screenplay, characters)
+│   ├── api/                 # FastAPI (routes, models, repository)
+│   └── tools/               # Custom ADK tools
+├── tests/
+│   ├── unit/                # Fast, isolated tests
+│   ├── integration/         # Component interaction tests
+│   └── e2e/                 # Full workflow tests
+├── docs/
+│   ├── DEVELOPMENT.md       # Local dev setup, hot reload, debugging
+│   ├── TESTING.md           # Testing strategies, mocking LLMs
+│   ├── EXAMPLES.md          # Complete working examples
+│   └── ARCHITECTURE.md      # System design and patterns
+├── .github/workflows/       # CI/CD pipeline
+├── Dockerfile               # Multi-stage build
+├── docker-compose.yml       # Multi-container setup
+├── pyproject.toml           # Dependencies and tool config
+└── Makefile                 # Common commands
+```
+
+## Quick Commands
+
+```bash
+# Setup
+make install              # Install deps + pre-commit hooks
+cp .env.example .env      # Configure environment
+
+# Development
+make dev                  # Start API server (hot reload)
+make test                 # Run all tests
+make lint                 # Check code quality
+make format               # Format code
+
+# Docker
+make docker-up            # Start all services
+make docker-logs          # View logs
+make docker-down          # Stop services
+
+# Testing
+make test-unit            # Unit tests only
+make test-int             # Integration tests only
+make test-cov             # With coverage report
+```
+
+## Code Quality Tools
+
+### Ruff (Linter & Formatter)
+- Line length: 100 chars
+- Python 3.12 target
+- Auto-fixes for most issues
+- Configured in `pyproject.toml`
+
+```bash
+uv run ruff check .        # Check code
+uv run ruff check --fix .  # Auto-fix
+uv run ruff format .       # Format code
+```
+
+### MyPy (Type Checker)
+- Strict mode enabled
+- Disallow untyped definitions
+- Check all function signatures
+
+```bash
+uv run mypy src
+```
+
+### Pre-commit Hooks
+Run automatically on commit:
+- Trailing whitespace removal
+- YAML/JSON/TOML validation
+- Ruff linting and formatting
+- MyPy type checking
+
+```bash
+uv run pre-commit run --all-files
+```
+
+## Testing Strategy
+
+### 1. Unit Tests (Fast, Isolated)
+
+**Location**: `tests/unit/`
+**Purpose**: Test individual components
+**Markers**: `@pytest.mark.unit`
+
+**Example**:
+```python
+@pytest.mark.unit
+def test_agent_initialization():
+    agent = ScreenplayAgent(model="gemini-2.5-flash")
+    assert agent.model == "gemini-2.5-flash"
+```
+
+**Mocking LLM Responses**:
+```python
+@pytest.fixture
+def mock_llm_response():
+    return {
+        "title": "Test Title",
+        "logline": "Test story",
+        "three_act_structure": {...},
+        "characters": [...]
+    }
+
+@pytest.mark.unit
+async def test_with_mock(mock_llm_response):
+    with patch.object(agent, 'create_outline', return_value=mock_llm_response):
+        result = await agent.create_outline("concept")
+        assert result["title"] == "Test Title"
+```
+
+### 2. Integration Tests (Component Interaction)
+
+**Location**: `tests/integration/`
+**Purpose**: Test API endpoints, repository pattern
+**Markers**: `@pytest.mark.integration`
+
+**Example**:
+```python
+@pytest.mark.integration
+async def test_api_endpoint():
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response = await client.post(
+            "/api/screenplay/generate",
+            json={"concept": "Story idea"}
+        )
+        assert response.status_code == 201
+```
+
+### 3. E2E Tests (Full Workflows)
+
+**Location**: `tests/e2e/`
+**Purpose**: Test complete user workflows
+**Markers**: `@pytest.mark.e2e`, `@pytest.mark.slow`
+
+**Example**:
+```python
+@pytest.mark.e2e
+@pytest.mark.slow
+async def test_complete_workflow():
+    # Test from API request to final response
+    pass
+```
+
+### Running Tests
+
+```bash
+# All tests
+uv run pytest
+
+# By marker
+uv run pytest -m unit
+uv run pytest -m integration
+uv run pytest -m "not slow"
+
+# With coverage
+uv run pytest --cov=src --cov-report=html
+
+# Specific file
+uv run pytest tests/unit/test_screenplay_agent.py
+
+# Specific test
+uv run pytest tests/unit/test_screenplay_agent.py::test_agent_initialization
+```
+
+## Architecture Patterns
+
+### 1. Repository Pattern
+
+**Purpose**: Abstract data access layer
+
+```python
+class ScreenplayRepository(ABC):
+    @abstractmethod
+    async def generate_outline(self, concept: str) -> dict:
+        pass
+
+class ADKScreenplayRepository(ScreenplayRepository):
+    async def generate_outline(self, concept: str) -> dict:
+        agent = self._get_agent()
+        return await agent.create_outline(concept)
+```
+
+**Benefits**:
+- Easy to test (mock repository)
+- Swappable implementations
+- Clean separation of concerns
+
+### 2. Dependency Injection
+
+**Purpose**: Manage dependencies cleanly
+
+```python
+def get_repository() -> ScreenplayRepository:
+    return ADKScreenplayRepository()
+
+@app.post("/api/screenplay/generate")
+async def generate_screenplay(
+    request: ScreenplayRequest,
+    repository: ScreenplayRepository = Depends(get_repository)
+):
+    return await repository.generate_outline(request.concept)
+```
+
+**Benefits**:
+- Testable (inject mocks)
+- Flexible configuration
+- Clear dependencies
+
+## ADK Agent Development
+
+### Basic Agent
+
+```python
+from google.adk import Agent
+
+agent = Agent(
+    name="agent_name",
+    model="gemini-2.5-flash",
+    description="What the agent does",
+    instruction="""
+    Detailed instructions for the agent.
+    Use {state_key?} to read from session state.
+    """,
+    tools=[tool_function],
+)
+```
+
+### Agent with Tools
+
+```python
+def save_to_state(
+    tool_context: ToolContext,
+    key: str,
+    value: str,
+) -> dict[str, str]:
+    """Save data to session state."""
+    tool_context.state[key] = value
+    return {"status": "success"}
+
+agent = Agent(
+    name="agent_with_tool",
+    model="gemini-2.5-flash",
+    tools=[save_to_state],
+)
+```
+
+### Multi-Agent Workflows
+
+**Sequential** (one after another):
+```python
+workflow = SequentialAgent(
+    name="workflow",
+    sub_agents=[agent1, agent2, agent3],
+)
+```
+
+**Loop** (iterative refinement):
+```python
+workflow = LoopAgent(
+    name="iterative_workflow",
+    sub_agents=[researcher, writer, critic],
+    max_iterations=5,
+)
+```
+
+**Parallel** (concurrent execution):
+```python
+workflow = ParallelAgent(
+    name="parallel_workflow",
+    sub_agents=[research_agent, analysis_agent],
+)
+```
+
+## Local Development
+
+### Hot Reloading
+
+**Backend**:
+```bash
+uv run uvicorn src.api.main:app --reload
+```
+
+**Agents**:
+```bash
+uv run adk web --reload_agents
+```
+
+**Frontend**:
+```bash
+cd frontend
+npm run dev
+```
+
+### Debugging
+
+**ADK CLI**:
+```bash
+uv run adk run src.agents.screenplay_agent
+```
+
+**ADK Web UI**:
+```bash
+uv run adk web --port 8001
+# Visit http://localhost:8001
+```
+
+**LiteLLM Proxy**:
+```bash
+# Check health
+curl http://localhost:4000/health
+
+# List models
+curl http://localhost:4000/v1/models \
+  -H "Authorization: Bearer $LITELLM_MASTER_KEY"
+```
+
+## Docker Development
+
+### Local Docker
+
+```bash
+# Build
+docker-compose build
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f api
+
+# Stop
+docker-compose down
+```
+
+### Services
+
+- `api`: FastAPI backend (port 8000)
+- `litellm-proxy`: LLM proxy (port 4000)
+- `postgres`: Database for LiteLLM
+- `frontend`: React app (port 3000)
+
+## CI/CD Pipeline
+
+GitHub Actions runs on push/PR:
+
+1. **Lint**: Ruff check and format validation
+2. **Type Check**: MyPy validation
+3. **Test**: Unit and integration tests
+4. **Coverage**: Upload to Codecov
+5. **Build**: Docker image build
+
+**Configuration**: `.github/workflows/ci.yml`
+
+## Common Issues
+
+### Port in Use
+```bash
+lsof -i :8000
+kill -9 <PID>
+```
+
+### Docker Issues
+```bash
+docker system prune -a
+docker-compose build --no-cache
+```
+
+### uv Lock Issues
+```bash
+rm -rf .venv
+uv sync --all-extras
+```
+
+### Pre-commit Issues
+```bash
+uv run pre-commit clean
+uv run pre-commit install
+```
+
+## Best Practices
+
+### Code Style
+- 4 spaces indentation (Python)
+- Type hints on all functions
+- Docstrings with Args/Returns
+- Max line length: 100 chars
+
+### Git Commits
+- Conventional Commits format
+- Example: `feat: add character agent`
+- Example: `fix: resolve API timeout issue`
+- Example: `test: add integration tests for workflow`
+
+### Testing
+- Test behavior, not implementation
+- Mock external dependencies
+- Keep tests fast (<1s for unit)
+- Use fixtures for shared setup
+- Aim for 80%+ coverage
+
+### Documentation
+- Update docs with code changes
+- Include examples in docstrings
+- Keep README.md current
+- Document complex logic
+
+## Environment Variables
+
+Required:
+```bash
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
+LITELLM_MASTER_KEY=sk-your-key
+```
+
+Optional:
+```bash
+OPENAI_API_KEY=sk-your-key
+ANTHROPIC_API_KEY=sk-your-key
+LANGFUSE_PUBLIC_KEY=pk-your-key
+LANGFUSE_SECRET_KEY=sk-your-key
+```
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `pyproject.toml` | Dependencies, tool config |
+| `Dockerfile` | Container image definition |
+| `docker-compose.yml` | Multi-container setup |
+| `litellm-config.yaml` | LLM proxy configuration |
+| `.pre-commit-config.yaml` | Pre-commit hooks |
+| `.github/workflows/ci.yml` | CI/CD pipeline |
+| `Makefile` | Common commands |
+
+## Documentation
+
+- **[DEVELOPMENT.md](DEVELOPMENT.md)**: Detailed development guide
+- **[TESTING.md](TESTING.md)**: Complete testing strategies
+- **[EXAMPLES.md](EXAMPLES.md)**: Working code examples
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: System design patterns
+- **[QUICKSTART.md](../QUICKSTART.md)**: 5-minute setup guide
+- **[README.md](../README.md)**: Project overview
+
+## Resources
+
+- [Google ADK Documentation](https://cloud.google.com/vertex-ai/docs/agent-builder)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [LiteLLM Documentation](https://docs.litellm.ai/)
+- [Ruff Documentation](https://docs.astral.sh/ruff/)
+- [pytest Documentation](https://docs.pytest.org/)
+- [uv Documentation](https://docs.astral.sh/uv/)
+
+## Support
+
+For issues or questions:
+1. Check documentation in `docs/`
+2. Review examples in `docs/EXAMPLES.md`
+3. Check existing tests for patterns
+4. Run `make help` for available commands
