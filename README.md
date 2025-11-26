@@ -2,80 +2,105 @@
 
 Multi-agent filmmaking system using Google ADK, LiteLLM Proxy, FastAPI backend, and React/TypeScript frontend.
 
+> **⚡ Quick Start**: Just run `./start.sh` to start everything! See [Quick Start](#quick-start) below.
+
 ## Features
 
+- **Multi-Model LLM Support**: Switch between 9 models (Gemini, GPT, Claude) at will
+- **LiteLLM Proxy**: Unified interface to multiple LLM providers
 - **Google ADK Agents**: Specialized agents for screenplay, characters, and story development
-- **LiteLLM Proxy**: Model-agnostic LLM abstraction layer
 - **FastAPI Backend**: Clean architecture with repository pattern
 - **React Frontend**: TypeScript-based UI with hooks
 - **Complete Testing**: Unit, integration, and E2E tests
 - **Code Quality**: Ruff, MyPy, pre-commit hooks
-- **Docker Support**: Multi-container deployment
+- **Full Docker Stack**: Multi-container deployment with PostgreSQL
 - **CI/CD**: GitHub Actions workflow
 
-### Quick Start (Local Development)
+## Quick Start
 
-This project uses `uv` for dependency management and Docker for the database.
+### One-Command Startup ⚡
 
-#### 1. Prerequisites
-- Python 3.12+
-- [uv](https://github.com/astral-sh/uv) installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- Docker Desktop (for PostgreSQL)
+```bash
+./start.sh
+```
 
-#### 2. Setup
+**That's it!** On first run, the script will:
+1. Check Docker is running
+2. Create `.env` from template (if needed)
+3. Prompt you to add your `GOOGLE_CLOUD_PROJECT`
+4. Build all Docker images
+5. Start 4 services (API, LiteLLM, PostgreSQL, Frontend)
+6. Wait for everything to be ready
+7. Show you the URLs to access
+
+**Stop everything:**
+```bash
+./stop.sh
+```
+
+### First Time: Edit .env
+
+The script creates `.env` automatically. Edit it with your credentials:
+
+```bash
+nano .env
+
+# Required (minimum for Gemini):
+GOOGLE_CLOUD_PROJECT=your-project-id
+
+# Optional (for GPT models):
+OPENAI_API_KEY=sk-...
+
+# Optional (for Claude models):
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Then run `./start.sh` again.
+
+### Access Your Services
+
+- **Frontend**: http://localhost:3000
+- **API Docs**: http://localhost:8000/docs
+- **LiteLLM Dashboard**: http://localhost:4000/ui
+
+**🔄 Switch Models:**
+```bash
+make switch-model MODEL=gpt-4
+make switch-model MODEL=claude-3-5-sonnet
+```
+
+**📚 Detailed Guide:** See [docs/QUICK_START.md](docs/QUICK_START.md)
+
+### Local Development (Without Docker)
 
 ```bash
 # 1. Install dependencies
 uv sync
 
-# 2. Configure Environment
-# Copy example env and update if needed (default works for local Docker)
+# 2. Configure environment
 cp .env.example .env
 
-# 3. Start Database
-# Starts PostgreSQL on port 5433 to avoid conflicts
+# 3. Start database only
 docker-compose up -d postgres
 
-# 4. Run Migrations
-# Creates the 'filmdb' database schema
+# 4. Run migrations
 uv run alembic upgrade head
-```
 
-#### 3. Run Application
-
-```bash
-# Start the API server (Hot Reloading enabled)
+# 5. Start API
 uv run uvicorn backend.app.api.main:app --reload --port 8000
 ```
 
-Verify it's working:
-```bash
-curl http://localhost:8000/health
-# Output: {"status":"healthy","service":"agente-films-api"}
-```
-
-#### 4. Run Tests
+### Available Commands
 
 ```bash
-# Run all tests (Unit + Integration)
-uv run pytest
-
-# Run End-to-End Test Script
-uv run python scripts/e2e_test.py
-```
-
-### Docker
-
-```bash
-# Build and start all services
-make docker-build
-make docker-up
-
-# View logs
-make docker-logs
-
-# Stop services
-make docker-down
+make help           # Show all commands
+make up             # Start services
+make down           # Stop services
+make logs           # View logs
+make test-models    # Test all models
+make list-models    # List available models
+make health         # Check service health
+make shell-api      # Open API container shell
 ```
 
 ## Project Structure
@@ -106,9 +131,12 @@ agente-films/
 
 ## Documentation
 
-- **[Development Guide](docs/DEVELOPMENT.md)**: Local setup, hot reloading, debugging
-- **[Testing Guide](docs/TESTING.md)**: Testing strategy, mocking LLMs, coverage
-- **[Examples](docs/EXAMPLES.md)**: Complete working examples
+- **[Quick Start](docs/QUICK_START.md)**: Get started in 3 steps ⚡
+- **[LiteLLM Setup](docs/LITELLM_SETUP.md)**: Complete multi-model guide 🎯
+- **[Architecture](docs/ARCHITECTURE.md)**: System design with diagrams 🏗️
+- **[Development Guide](docs/DEVELOPMENT.md)**: Local setup, hot reloading, debugging 💻
+- **[Testing Guide](docs/TESTING.md)**: Testing strategy, mocking LLMs, coverage 🧪
+- **[Examples](docs/EXAMPLES.md)**: Complete working examples 📝
 
 ## Testing
 
@@ -222,23 +250,40 @@ async def generate_screenplay(
     return ScreenplayResponse(**result)
 ```
 
-## LiteLLM Proxy
+## Multi-Model LLM Support
 
-Access multiple LLM providers through unified API:
+Access 9 different models from 3 providers through unified LiteLLM proxy:
 
+**Available Models:**
+| Provider | Models | Use Cases |
+|----------|--------|-----------|
+| **Google** | gemini-2.5-flash, gemini-2.0-flash, gemini-pro | Fast, cost-effective, reasoning |
+| **OpenAI** | gpt-4, gpt-4-turbo, gpt-3.5-turbo | High quality, versatile |
+| **Anthropic** | claude-3-5-sonnet, claude-3-opus, claude-3-haiku | Balanced, capable, fast |
+
+**Switch Models:**
 ```bash
-# Check proxy health
-curl http://localhost:4000/health
+# Method 1: Make command
+make switch-model MODEL=gpt-4
 
-# List available models
-curl http://localhost:4000/v1/models \
-  -H "Authorization: Bearer $LITELLM_MASTER_KEY"
+# Method 2: Environment variable
+MODEL=claude-3-5-sonnet docker-compose up api
+
+# Method 3: In code
+from backend.app.services.litellm_client import LiteLLMClient
+client = LiteLLMClient()
+response = await client.chat_completion(
+    messages=[{"role": "user", "content": "Hello"}],
+    model="claude-3-5-sonnet"
+)
 ```
 
-Supported models:
-- Gemini (Vertex AI)
-- GPT-4 (OpenAI)
-- Claude (Anthropic)
+**Management UI:**
+- LiteLLM UI: http://localhost:4000/ui
+- API Docs: http://localhost:8000/docs
+- Health Check: `make health`
+
+**📚 Complete Guide:** See [docs/LITELLM_SETUP.md](docs/LITELLM_SETUP.md)
 
 ## CI/CD Pipeline
 

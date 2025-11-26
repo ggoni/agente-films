@@ -4,13 +4,20 @@ Complete documentation for the agente-films multi-agent filmmaking system.
 
 ## Getting Started
 
-1. **[QUICKSTART.md](../QUICKSTART.md)** - 5-minute setup guide
-   - Installation steps
-   - Basic configuration
-   - First API call
-   - Common commands
+1. **[QUICK_START.md](QUICK_START.md)** - Get started in 3 steps ⚡
+   - Full Docker setup
+   - Model switching
+   - Service access
+   - Quick commands
 
-2. **[README.md](../README.md)** - Project overview
+2. **[LITELLM_SETUP.md](LITELLM_SETUP.md)** - Complete multi-model guide 🎯
+   - Architecture overview
+   - 9 available models
+   - Configuration
+   - Usage examples
+   - Monitoring & troubleshooting
+
+3. **[README.md](../README.md)** - Project overview
    - Features and capabilities
    - Quick start instructions
    - Project structure
@@ -198,25 +205,29 @@ Everything in one place:
 
 ```
 docs/
-├── INDEX.md           # This file - documentation index
-├── SUMMARY.md         # Quick reference for everything
-├── DEVELOPMENT.md     # Detailed development guide
-├── TESTING.md         # Complete testing strategies
-├── EXAMPLES.md        # Working code examples
-└── ARCHITECTURE.md    # System design and patterns
+├── INDEX.md             # This file - documentation index
+├── QUICK_START.md       # Get started in 3 steps
+├── LITELLM_SETUP.md     # Multi-model LLM setup guide
+├── SUMMARY.md           # Quick reference for everything
+├── DEVELOPMENT.md       # Detailed development guide
+├── TESTING.md           # Complete testing strategies
+├── EXAMPLES.md          # Working code examples
+└── ARCHITECTURE.md      # System design and patterns
 
 Root:
-├── QUICKSTART.md      # 5-minute setup
-└── README.md          # Project overview
+├── README.md                    # Project overview
+├── LITELLM_IMPLEMENTATION.md    # LiteLLM implementation summary
+└── Makefile                     # Common commands
 ```
 
 ## How to Use This Documentation
 
 ### If you're new to the project:
-1. Start with **[QUICKSTART.md](../QUICKSTART.md)**
-2. Read **[README.md](../README.md)** for overview
-3. Check **[DEVELOPMENT.md](DEVELOPMENT.md)** for setup details
-4. Review **[EXAMPLES.md](EXAMPLES.md)** for working code
+1. Start with **[QUICK_START.md](QUICK_START.md)** - 3 steps to get running
+2. Read **[LITELLM_SETUP.md](LITELLM_SETUP.md)** - Understand multi-model support
+3. Check **[README.md](../README.md)** for overview
+4. Review **[DEVELOPMENT.md](DEVELOPMENT.md)** for setup details
+5. See **[EXAMPLES.md](EXAMPLES.md)** for working code
 
 ### If you're writing tests:
 1. Read **[TESTING.md](TESTING.md)** for strategies
@@ -301,7 +312,8 @@ Before release:
 
 | Need | Go To |
 |------|-------|
-| Quick setup | [QUICKSTART.md](../QUICKSTART.md) |
+| Quick setup | [QUICK_START.md](QUICK_START.md) ⚡ |
+| Multi-model setup | [LITELLM_SETUP.md](LITELLM_SETUP.md) 🎯 |
 | Project overview | [README.md](../README.md) |
 | Development setup | [DEVELOPMENT.md](DEVELOPMENT.md) |
 | Testing guide | [TESTING.md](TESTING.md) |

@@ -188,14 +188,44 @@ Abstracts all database operations related to session history and state, providin
 
 ### 3. LiteLLM Proxy
 
-**Purpose**: Unified interface for multiple LLM providers
+**Purpose**: Unified interface for multiple LLM providers with dynamic model switching
+
+**Architecture**:
+```mermaid
+graph TB
+    API[FastAPI Backend]
+    Client[LiteLLMClient Service]
+    Proxy[LiteLLM Proxy :4000]
+    Config[litellm-config.yaml]
+    DB[(PostgreSQL - litellm)]
+
+    subgraph "LLM Providers"
+        Gemini[Google Vertex AI]
+        GPT[OpenAI]
+        Claude[Anthropic]
+    end
+
+    API -->|Uses| Client
+    Client -->|HTTP| Proxy
+    Proxy -->|Reads| Config
+    Proxy -->|Logs| DB
+    Proxy -->|Routes to| Gemini
+    Proxy -->|Routes to| GPT
+    Proxy -->|Routes to| Claude
+```
+
+**Available Models (9 total)**:
+- **Google Vertex AI**: gemini-2.5-flash, gemini-2.0-flash, gemini-pro
+- **OpenAI**: gpt-4, gpt-4-turbo, gpt-3.5-turbo
+- **Anthropic**: claude-3-5-sonnet, claude-3-opus, claude-3-haiku
 
 **Features**:
-- Model abstraction
-- Load balancing
-- Rate limiting
-- Cost tracking
-- Observability (Langfuse integration)
+- **Dynamic Model Switching**: Change models via environment variable or per-request
+- **Unified Interface**: Single API for all providers
+- **Usage Tracking**: PostgreSQL logging with UI dashboard
+- **Health Monitoring**: Built-in health checks and metrics
+- **Cost Optimization**: Model selection based on task complexity
+- **Observability**: Request/response logging and tracing
 
 ### 4. Frontend (React)
 

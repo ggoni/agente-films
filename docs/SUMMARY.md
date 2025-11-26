@@ -3,13 +3,14 @@
 ## Overview
 
 Complete development setup for multi-agent filmmaking system with:
+- **Multi-Model LLM Support**: 9 models across 3 providers (Gemini, GPT, Claude)
+- **LiteLLM Proxy**: Unified interface with model switching at will
 - Google ADK agents
-- LiteLLM proxy integration
 - FastAPI backend with repository pattern
 - React/TypeScript frontend
 - Comprehensive testing (unit, integration, E2E)
 - CI/CD pipeline
-- Docker deployment
+- Full Docker stack deployment
 
 ## Project Structure
 
@@ -39,24 +40,31 @@ agente-films/
 
 ```bash
 # Setup
-make install              # Install deps + pre-commit hooks
-cp .env.example .env      # Configure environment
+make setup                # First-time setup (copy .env, build, start)
+make up                   # Start all services
+make down                 # Stop all services
+
+# Model Management
+make test-models          # Test all configured models
+make list-models          # List available models
+make switch-model MODEL=gpt-4  # Switch to different model
 
 # Development
-make dev                  # Start API server (hot reload)
-make test                 # Run all tests
-make lint                 # Check code quality
-make format               # Format code
-
-# Docker
-make docker-up            # Start all services
-make docker-logs          # View logs
-make docker-down          # Stop services
+make logs                 # View all logs
+make logs-api             # API logs only
+make logs-litellm         # LiteLLM logs only
+make health               # Check service health
 
 # Testing
-make test-unit            # Unit tests only
-make test-int             # Integration tests only
-make test-cov             # With coverage report
+make test                 # Run all tests
+make format               # Format code
+make lint                 # Check code quality
+make fix                  # Auto-fix linting issues
+
+# Utilities
+make shell-api            # Open API container shell
+make shell-db             # Open PostgreSQL shell
+make clean                # Clean containers and volumes
 ```
 
 ## Code Quality Tools
@@ -353,10 +361,23 @@ docker-compose down
 
 ### Services
 
-- `api`: FastAPI backend (port 8000)
-- `litellm-proxy`: LLM proxy (port 4000)
-- `postgres`: Database for LiteLLM
-- `frontend`: React app (port 3000)
+- `api`: FastAPI backend (port 8000) - http://localhost:8000/docs
+- `litellm-proxy`: LLM proxy (port 4000) - http://localhost:4000/ui
+- `postgres`: PostgreSQL (port 5433) - filmdb + litellm databases
+- `frontend`: React app (port 3000) - http://localhost:3000
+
+### Multi-Model Support
+
+**Available Models (9 total):**
+- Google: gemini-2.5-flash, gemini-2.0-flash, gemini-pro
+- OpenAI: gpt-4, gpt-4-turbo, gpt-3.5-turbo
+- Anthropic: claude-3-5-sonnet, claude-3-opus, claude-3-haiku
+
+**Switch Models:**
+```bash
+make switch-model MODEL=gpt-4
+make switch-model MODEL=claude-3-5-sonnet
+```
 
 ## CI/CD Pipeline
 
@@ -425,20 +446,25 @@ uv run pre-commit install
 
 ## Environment Variables
 
-Required:
+**Required (minimum for Gemini):**
 ```bash
 GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_GENAI_USE_VERTEXAI=TRUE
-LITELLM_MASTER_KEY=sk-your-key
+MODEL=gemini-2.5-flash
 ```
 
-Optional:
+**Optional (for other models):**
 ```bash
-OPENAI_API_KEY=sk-your-key
-ANTHROPIC_API_KEY=sk-your-key
-LANGFUSE_PUBLIC_KEY=pk-your-key
-LANGFUSE_SECRET_KEY=sk-your-key
+OPENAI_API_KEY=sk-your-key        # For GPT models
+ANTHROPIC_API_KEY=sk-your-key     # For Claude models
 ```
+
+**LiteLLM Configuration:**
+```bash
+LITELLM_BASE_URL=http://litellm-proxy:4000
+LITELLM_MASTER_KEY=sk-1234
+```
+
+**See:** `.env.example` for complete list
 
 ## Key Files
 
@@ -454,11 +480,12 @@ LANGFUSE_SECRET_KEY=sk-your-key
 
 ## Documentation
 
+- **[QUICK_START.md](QUICK_START.md)**: Get started in 3 steps ⚡
+- **[LITELLM_SETUP.md](LITELLM_SETUP.md)**: Complete multi-model guide 🎯
 - **[DEVELOPMENT.md](DEVELOPMENT.md)**: Detailed development guide
 - **[TESTING.md](TESTING.md)**: Complete testing strategies
 - **[EXAMPLES.md](EXAMPLES.md)**: Working code examples
 - **[ARCHITECTURE.md](ARCHITECTURE.md)**: System design patterns
-- **[QUICKSTART.md](../QUICKSTART.md)**: 5-minute setup guide
 - **[README.md](../README.md)**: Project overview
 
 ## Resources
