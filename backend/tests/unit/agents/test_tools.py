@@ -78,3 +78,39 @@ def test_append_to_state_creates_new_key() -> None:
 
     assert mock_context.state["research"] == ["first"]
     assert mock_context.state["other"] == ["data"]
+
+
+def test_write_file_creates_file(tmp_path: Any) -> None:
+    """Test that write_file creates a file successfully."""
+    from backend.app.agents.tools import write_file
+
+    result = write_file(Mock(), "test_pitch", str(tmp_path), "Film pitch content")
+
+    assert result["status"] == "success"
+    assert "path" in result
+    file_path = tmp_path / "test_pitch.txt"
+    assert file_path.exists()
+    assert file_path.read_text() == "Film pitch content"
+
+
+def test_write_file_handles_errors() -> None:
+    """Test that write_file handles errors gracefully."""
+    from backend.app.agents.tools import write_file
+
+    # Try to write to invalid directory
+    result = write_file(Mock(), "test", "/invalid/nonexistent/path", "content")
+
+    assert result["status"] == "error"
+    assert "error" in result
+
+
+def test_write_file_with_empty_content(tmp_path: Any) -> None:
+    """Test that write_file handles empty content."""
+    from backend.app.agents.tools import write_file
+
+    result = write_file(Mock(), "empty", str(tmp_path), "")
+
+    assert result["status"] == "success"
+    file_path = tmp_path / "empty.txt"
+    assert file_path.exists()
+    assert file_path.read_text() == ""
