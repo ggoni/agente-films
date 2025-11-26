@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api.routers import messages, sessions
+from backend.app.api.routers import messages, sessions, websocket
 from backend.app.config import Settings
 
 # Initialize settings
@@ -29,6 +29,7 @@ app.add_middleware(
 # Include routers
 app.include_router(sessions.router)
 app.include_router(messages.router)
+app.include_router(websocket.router)
 
 
 @app.get("/health")
