@@ -1,126 +1,119 @@
-#!/usr/bin/env python3
-"""Verify project setup and configuration."""
+"""Local setup verification script."""
 
 import sys
 from pathlib import Path
 
 
-def check_file_exists(path: Path, description: str) -> bool:
-    """Check if file exists."""
-    if path.exists():
-        print(f"✓ {description}: {path.name}")
+def check_python_version():
+    """Verify Python 3.12+ is installed."""
+    version = sys.version_info
+    if version.major == 3 and version.minor >= 12:
+        print(f"✅ Python {version.major}.{version.minor}.{version.micro}")
         return True
     else:
-        print(f"✗ {description}: {path.name} NOT FOUND")
+        print(f"❌ Python {version.major}.{version.minor} - Need 3.12+")
         return False
 
 
-def main() -> int:
-    """Run verification checks."""
-    project_root = Path(__file__).parent.parent
-    checks_passed = 0
-    checks_total = 0
+def check_uv_installed():
+    """Verify uv package manager is available."""
+    import subprocess
+    try:
+        result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
+        if result.returncode == 0:
+            print(f"✅ uv installed: {result.stdout.strip()}")
+            return True
+    except FileNotFoundError:
+        pass
+    print("❌ uv not installed - Run: curl -LsSf https://astral.sh/uv/install.sh | sh")
+    return False
 
-    print("=" * 60)
-    print("Project Setup Verification")
-    print("=" * 60)
 
-    # Core files
-    print("\n📋 Core Files:")
-    files = [
-        (project_root / "pyproject.toml", "Project config"),
-        (project_root / "pytest.ini", "pytest config"),
-        (project_root / ".pre-commit-config.yaml", "Pre-commit hooks"),
-        (project_root / ".env.example", "Environment template"),
-        (project_root / "Makefile", "Build commands"),
+def check_venv_exists():
+    """Verify virtual environment exists."""
+    venv_path = Path(".venv")
+    if venv_path.exists():
+        print("✅ Virtual environment exists")
+        return True
+    else:
+        print("❌ Virtual environment missing - Run: uv venv")
+        return False
+
+
+def check_dependencies_installed():
+    """Verify dependencies are installed."""
+    try:
+        import fastapi
+        import sqlalchemy
+        import pydantic
+        print("✅ Core dependencies installed")
+        return True
+    except ImportError as e:
+        print(f"❌ Missing dependencies - Run: uv pip install -e .")
+        return False
+
+
+def check_env_file():
+    """Verify .env file exists."""
+    env_path = Path(".env")
+    if env_path.exists():
+        print("✅ .env file exists")
+        return True
+    else:
+        print("⚠️  .env file missing - Copy from .env.example")
+        return False
+
+
+def check_database_url():
+    """Verify DATABASE_URL is configured."""
+    try:
+        from backend.app.config import Settings
+        settings = Settings()
+        if settings.DATABASE_URL:
+            print(f"✅ DATABASE_URL configured")
+            return True
+    except Exception as e:
+        print(f"❌ DATABASE_URL not configured: {e}")
+        return False
+
+
+def main():
+    """Run all verification checks."""
+    print("\n🔍 Verifying Local Development Setup\n")
+    print("=" * 50)
+    
+    checks = [
+        ("Python Version", check_python_version),
+        ("UV Package Manager", check_uv_installed),
+        ("Virtual Environment", check_venv_exists),
+        ("Dependencies", check_dependencies_installed),
+        ("Environment File", check_env_file),
+        ("Database Config", check_database_url),
     ]
-
-    for file_path, desc in files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # Docker files
-    print("\n🐳 Docker Configuration:")
-    docker_files = [
-        (project_root / "Dockerfile", "Docker image"),
-        (project_root / "docker-compose.yml", "Docker compose"),
-        (project_root / ".dockerignore", "Docker ignore"),
-        (project_root / "litellm-config.yaml", "LiteLLM config"),
-    ]
-
-    for file_path, desc in docker_files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # Source code
-    print("\n📦 Source Code:")
-    src_files = [
-        (project_root / "src" / "__init__.py", "Package init"),
-        (project_root / "src" / "agents" / "screenplay_agent.py", "Agent example"),
-        (project_root / "src" / "api" / "main.py", "FastAPI app"),
-        (project_root / "src" / "api" / "models.py", "API models"),
-        (project_root / "src" / "api" / "repository.py", "Repository"),
-    ]
-
-    for file_path, desc in src_files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # Tests
-    print("\n🧪 Tests:")
-    test_files = [
-        (project_root / "tests" / "conftest.py", "Test fixtures"),
-        (project_root / "tests" / "unit" / "test_screenplay_agent.py", "Unit tests"),
-        (project_root / "tests" / "integration" / "test_api.py", "Integration tests"),
-    ]
-
-    for file_path, desc in test_files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # Documentation
-    print("\n📚 Documentation:")
-    doc_files = [
-        (project_root / "README.md", "Project README"),
-        (project_root / "QUICKSTART.md", "Quick start"),
-        (project_root / "docs" / "DEVELOPMENT.md", "Development guide"),
-        (project_root / "docs" / "TESTING.md", "Testing guide"),
-        (project_root / "docs" / "EXAMPLES.md", "Code examples"),
-        (project_root / "docs" / "ARCHITECTURE.md", "Architecture"),
-        (project_root / "docs" / "SUMMARY.md", "Summary"),
-        (project_root / "docs" / "INDEX.md", "Doc index"),
-    ]
-
-    for file_path, desc in doc_files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # CI/CD
-    print("\n🚀 CI/CD:")
-    ci_files = [
-        (project_root / ".github" / "workflows" / "ci.yml", "GitHub Actions"),
-    ]
-
-    for file_path, desc in ci_files:
-        checks_total += 1
-        if check_file_exists(file_path, desc):
-            checks_passed += 1
-
-    # Summary
-    print("\n" + "=" * 60)
-    print(f"Results: {checks_passed}/{checks_total} checks passed")
-    print("=" * 60)
-
-    if checks_passed == checks_total:
-        print("\n✓ All checks passed! Project setup is complete.")
+    
+    results = []
+    for name, check_func in checks:
+        try:
+            result = check_func()
+            results.append(result)
+        except Exception as e:
+            print(f"❌ {name}: Error - {e}")
+            results.append(False)
+        print()
+    
+    print("=" * 50)
+    passed = sum(results)
+    total = len(results)
+    print(f"\n📊 Results: {passed}/{total} checks passed")
+    
+    if passed == total:
+        print("\n✅ Local setup verified! Ready to run the API.")
+        print("\n🚀 Next steps:")
+        print("   1. Start API: uvicorn backend.app.api.main:app --reload")
+        print("   2. Visit docs: http://localhost:8000/docs")
         return 0
     else:
-        print(f"\n✗ {checks_total - checks_passed} checks failed.")
+        print("\n⚠️  Some checks failed. Please fix issues above.")
         return 1
 
 
