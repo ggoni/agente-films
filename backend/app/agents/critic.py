@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from backend.app.agents.base import get_model_name
 from backend.app.agents.tools import append_to_state
+from backend.app.config import Settings
 
 
 class CriticAgent:
@@ -15,7 +15,7 @@ class CriticAgent:
     """
 
     name: str = "critic"
-    model: str = get_model_name()
+    model: str = Settings().MODEL
     description: str = "Evaluate plot outlines and provide constructive feedback"
     instruction: str = """You are an expert story critic and script consultant.
 

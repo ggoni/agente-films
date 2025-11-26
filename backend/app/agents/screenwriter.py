@@ -1,6 +1,6 @@
 """Screenwriter agent for creating plot outlines and narratives."""
 
-from backend.app.agents.base import get_model_name
+from backend.app.config import Settings
 
 
 class ScreenwriterAgent:
@@ -12,7 +12,7 @@ class ScreenwriterAgent:
     """
 
     name: str = "screenwriter"
-    model: str = get_model_name()
+    model: str = Settings().MODEL
     description: str = "Transform research into compelling plot outlines and narratives"
     output_key: str = "PLOT_OUTLINE"
     instruction: str = """You are an expert screenwriter specializing in historical dramas.

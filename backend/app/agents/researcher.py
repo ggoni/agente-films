@@ -2,8 +2,8 @@
 
 from typing import Any
 
-from backend.app.agents.base import get_model_name
 from backend.app.agents.tools import append_to_state, wikipedia_search
+from backend.app.config import Settings
 
 
 class ResearcherAgent:
@@ -15,7 +15,7 @@ class ResearcherAgent:
     """
 
     name: str = "researcher"
-    model: str = get_model_name()
+    model: str = Settings().MODEL
     description: str = "Research historical figures and contexts for film concepts"
     instruction: str = """You are an expert researcher specializing in historical figures and contexts.
 

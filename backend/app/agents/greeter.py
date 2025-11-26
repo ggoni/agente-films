@@ -1,7 +1,7 @@
 """Root greeter agent - entry point for the filmmaking system."""
 
-from backend.app.agents.base import get_model_name
 from backend.app.agents.workflows import film_concept_team
+from backend.app.config import Settings
 
 
 class GreeterAgent:
@@ -13,7 +13,7 @@ class GreeterAgent:
     """
 
     name: str = "greeter"
-    model: str = get_model_name()
+    model: str = Settings().MODEL
     description: str = "Welcome users and initiate film concept development workflow"
     sub_agents: list = [film_concept_team]
     instruction: str = """You are the welcoming agent for the Film Concept Generator system.
