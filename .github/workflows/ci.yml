@@ -37,7 +37,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          uv run mypy src --ignore-missing-imports
+          uv run mypy backend --ignore-missing-imports
 
   test:
     name: Test
@@ -65,11 +65,11 @@ jobs:
 
       - name: Run unit tests
         run: |
-          uv run pytest tests/unit -m unit --cov=src --cov-report=xml --cov-report=term
+          uv run pytest backend/tests/unit --cov=backend --cov-report=xml --cov-report=term
 
       - name: Run integration tests
         run: |
-          uv run pytest tests/integration -m integration --cov=src --cov-append --cov-report=xml --cov-report=term
+          uv run pytest backend/tests/integration --cov=backend --cov-append --cov-report=xml --cov-report=term
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
