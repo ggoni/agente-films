@@ -47,9 +47,6 @@ def test_greeter_has_film_concept_team() -> None:
 
     # Get name from sub-agent (could be dict or object)
     sub_agent = greeter["sub_agents"][0]
-    if isinstance(sub_agent, dict):
-        agent_name = sub_agent["name"]
-    else:
-        agent_name = sub_agent.name
-    
+    agent_name = sub_agent["name"] if isinstance(sub_agent, dict) else sub_agent.name
+
     assert agent_name == "film_concept_team"

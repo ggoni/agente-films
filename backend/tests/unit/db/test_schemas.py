@@ -1,10 +1,7 @@
 """Unit tests for Pydantic schemas."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
-
-import pytest
-from pydantic import ValidationError
 
 from backend.app.db.schemas import SessionBase, SessionCreate, SessionResponse
 
@@ -32,7 +29,7 @@ def test_session_create_defaults() -> None:
 def test_session_response_has_all_fields() -> None:
     """Test that SessionResponse includes all fields."""
     session_id = uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     data = SessionResponse(
         id=session_id,
