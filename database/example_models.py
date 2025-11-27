@@ -14,14 +14,21 @@ Usage:
 """
 
 from datetime import datetime
-from typing import Optional, Dict, List, Any
+from typing import Any
 from uuid import uuid4
 
 from sqlalchemy import (
-    Column, String, Integer, Boolean, ForeignKey,
-    Text, TIMESTAMP, CheckConstraint, Index
+    TIMESTAMP,
+    Boolean,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -47,7 +54,7 @@ class User(Base):
 
     __table_args__ = (
         Index('idx_users_email', 'email'),
-        Index('idx_users_active', 'is_active', postgresql_where=(is_active == True)),
+        Index('idx_users_active', 'is_active', postgresql_where=(is_active)),
         Index('idx_users_created_at', 'created_at', postgresql_using='btree', postgresql_ops={'created_at': 'DESC'}),
     )
 
@@ -114,7 +121,7 @@ class Session(Base):
         return f"<Session(id={self.id}, name='{self.session_name}', status='{self.status}')>"
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         """Calculate session duration in seconds"""
         if self.ended_at:
             return (self.ended_at - self.started_at).total_seconds()
@@ -356,7 +363,7 @@ class Event(Base):
         Index('idx_events_session_id', 'session_id', 'created_at', postgresql_ops={'created_at': 'DESC'}),
         Index('idx_events_type', 'event_type', 'created_at', postgresql_ops={'created_at': 'DESC'}),
         Index('idx_events_agent', 'agent_name', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_events_tool', 'tool_name', postgresql_where=(tool_name != None)),
+        Index('idx_events_tool', 'tool_name', postgresql_where=(tool_name is not None)),
         Index('idx_events_data', 'event_data', postgresql_using='gin', postgresql_ops={'event_data': 'jsonb_path_ops'}),
         Index('idx_events_state_delta', 'state_delta', postgresql_using='gin',
               postgresql_ops={'state_delta': 'jsonb_path_ops'}),
@@ -449,7 +456,7 @@ def create_session(
     user_id: str,
     session_name: str,
     root_agent_name: str,
-    agent_config: Dict[str, Any]
+    agent_config: dict[str, Any]
 ) -> Session:
     """Create a new ADK session"""
     session = Session(
@@ -472,7 +479,7 @@ def add_question(
     user_id: str,
     content: str,
     sequence_number: int,
-    context: Optional[Dict[str, Any]] = None
+    context: dict[str, Any] | None = None
 ) -> Question:
     """Add a user question to the session"""
     question = Question(
@@ -495,9 +502,9 @@ def add_reasoning(
     content: str,
     sequence_number: int,
     reasoning_type: str = 'other',
-    question_id: Optional[str] = None,
-    answer_id: Optional[str] = None,
-    state_delta: Optional[Dict[str, Any]] = None
+    question_id: str | None = None,
+    answer_id: str | None = None,
+    state_delta: dict[str, Any] | None = None
 ) -> InferentialReasoning:
     """Add agent reasoning/thinking event"""
     reasoning = InferentialReasoning(
@@ -522,9 +529,9 @@ def add_answer(
     agent_name: str,
     content: str,
     sequence_number: int,
-    question_id: Optional[str] = None,
-    tokens_used: Optional[int] = None,
-    response_time_ms: Optional[int] = None
+    question_id: str | None = None,
+    tokens_used: int | None = None,
+    response_time_ms: int | None = None
 ) -> Answer:
     """Add agent answer to the session"""
     answer = Answer(
@@ -545,7 +552,7 @@ def add_answer(
 def update_session_state(
     db,
     session_id: str,
-    state_updates: Dict[str, Any]
+    state_updates: dict[str, Any]
 ) -> Session:
     """Update session state dictionary"""
     session = db.query(Session).filter(Session.id == session_id).first()
@@ -563,7 +570,7 @@ def create_state_snapshot(
     db,
     session_id: str,
     snapshot_type: str = 'manual',
-    description: Optional[str] = None
+    description: str | None = None
 ) -> StateSnapshot:
     """Create a point-in-time state snapshot"""
     session = db.query(Session).filter(Session.id == session_id).first()
@@ -582,7 +589,7 @@ def create_state_snapshot(
     return snapshot
 
 
-def get_conversation_context(db, session_id: str) -> Dict[str, Any]:
+def get_conversation_context(db, session_id: str) -> dict[str, Any]:
     """Get complete conversation context for a session"""
     session = db.query(Session).filter(Session.id == session_id).first()
     if not session:

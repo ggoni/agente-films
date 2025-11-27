@@ -11,13 +11,26 @@ This demonstrates:
 
 import os
 from datetime import datetime
-from sqlalchemy import create_engine, and_, desc, func
+
+from sqlalchemy import and_, create_engine, desc, func
 from sqlalchemy.orm import sessionmaker
+
 from database.example_models import (
-    Base, User, Session, Question, InferentialReasoning, Answer,
-    Event, FilmProject, AgentTransfer, StateSnapshot,
-    create_session, add_question, add_reasoning, add_answer,
-    update_session_state, create_state_snapshot, get_conversation_context
+    AgentTransfer,
+    Answer,
+    Event,
+    FilmProject,
+    Question,
+    Session,
+    StateSnapshot,
+    User,
+    add_answer,
+    add_question,
+    add_reasoning,
+    create_session,
+    create_state_snapshot,
+    get_conversation_context,
+    update_session_state,
 )
 
 # Database connection
@@ -101,7 +114,7 @@ def example_2_record_conversation(user_id, session_id):
         )
 
         # Agent 2: Screenwriter creates plot
-        reasoning2 = add_reasoning(
+        add_reasoning(
             db,
             session_id=str(session_id),
             question_id=str(question.id),
@@ -124,7 +137,7 @@ def example_2_record_conversation(user_id, session_id):
         )
 
         # Agent 3: Critic reviews
-        reasoning3 = add_reasoning(
+        add_reasoning(
             db,
             session_id=str(session_id),
             question_id=str(question.id),
@@ -332,7 +345,7 @@ def example_7_analytics_queries(user_id):
         db.close()
 
 
-def example_8_state_queries(session_id):
+def example_8_state_queries(_session_id):
     """Example 8: Query JSONB state with PostgreSQL operators"""
     db = SessionLocal()
 
@@ -348,7 +361,6 @@ def example_8_state_queries(session_id):
 
         # Query by state value (containment)
         # Note: Use SQLAlchemy's JSONB operators
-        from sqlalchemy.dialects.postgresql import JSONB
 
         sessions_with_research = db.query(Session).filter(
             Session.state['research'].astext.contains('Zhang')
@@ -403,7 +415,7 @@ def example_10_complete_workflow():
     user_id, session_id = example_1_create_user_and_session()
 
     # 2. Record conversation
-    question_id = example_2_record_conversation(user_id, session_id)
+    example_2_record_conversation(user_id, session_id)
 
     # 3. Track agent transfers
     example_3_track_agent_transfers(session_id)
