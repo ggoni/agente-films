@@ -57,11 +57,11 @@ class ScreenplayAgent:
             """,
         )
 
-    async def create_outline(self, concept: str) -> dict[str, Any]:
+    async def create_outline(self, _concept: str) -> dict[str, Any]:
         """Create screenplay outline from concept.
 
         Args:
-            concept: Movie concept or premise
+            _concept: Movie concept or premise (unused in mock implementation)
 
         Returns:
             Screenplay outline data

@@ -8,7 +8,7 @@ from httpx import AsyncClient
 async def test_create_session_integration(async_client: AsyncClient):
     """Test creating a session via API against real database."""
     response = await async_client.post("/sessions")
-    
+
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
@@ -37,6 +37,6 @@ async def test_get_nonexistent_session_integration(async_client: AsyncClient):
     """Test 404 for missing session."""
     import uuid
     fake_id = str(uuid.uuid4())
-    
+
     response = await async_client.get(f"/sessions/{fake_id}")
     assert response.status_code == 404

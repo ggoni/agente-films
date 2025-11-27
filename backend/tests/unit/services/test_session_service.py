@@ -1,7 +1,7 @@
 """Unit tests for SessionService."""
 
 from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -50,7 +50,7 @@ async def test_session_service_send_message(db_session: Any) -> None:
     assert len(response) > 0
 
 
-@pytest.mark.asyncio  
+@pytest.mark.asyncio
 async def test_session_service_reuses_runner() -> None:
     """Test that get_runner returns cached runner."""
     from backend.app.services.session_service import SessionService

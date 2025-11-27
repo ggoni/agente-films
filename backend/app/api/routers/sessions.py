@@ -22,16 +22,16 @@ async def create_session(db: Session = Depends(get_db)) -> SessionResponse:
     """
     service = SessionService(db)
     session_id = await service.create_session()
-    
+
     # Retrieve the created session to return full details
     from backend.app.db.repositories.session import SessionRepository
-    
+
     repo = SessionRepository(db)
     session = repo.get_by_id(session_id)
-    
+
     if not session:
         raise HTTPException(status_code=500, detail="Failed to create session")
-    
+
     return SessionResponse.model_validate(session)
 
 
@@ -53,11 +53,11 @@ async def get_session(
         HTTPException: 404 if session not found
     """
     from backend.app.db.repositories.session import SessionRepository
-    
+
     repo = SessionRepository(db)
     session = repo.get_by_id(session_id)
-    
+
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    
+
     return SessionResponse.model_validate(session)

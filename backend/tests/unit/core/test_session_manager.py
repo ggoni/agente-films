@@ -20,7 +20,7 @@ def test_session_manager_returns_cached_session() -> None:
 
     manager = SessionManager()
     session_id = uuid4()
-    
+
     session1 = manager.get_or_create_session(session_id)
     session2 = manager.get_or_create_session(session_id)
 
@@ -47,12 +47,12 @@ def test_session_manager_multiple_ids() -> None:
 
     manager = SessionManager()
     sessions = {}
-    
+
     # Create 5 different sessions
-    for i in range(5):
+    for _i in range(5):
         session_id = uuid4()
         sessions[session_id] = manager.get_or_create_session(session_id)
-    
+
     # Verify they're all cached correctly
     for session_id, original_session in sessions.items():
         cached_session = manager.get_or_create_session(session_id)

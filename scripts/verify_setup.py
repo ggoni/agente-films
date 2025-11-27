@@ -42,15 +42,17 @@ def check_venv_exists():
 
 def check_dependencies_installed():
     """Verify dependencies are installed."""
-    try:
-        import fastapi
-        import sqlalchemy
-        import pydantic
+    import importlib.util
+
+    required_packages = ["fastapi", "pydantic", "sqlalchemy"]
+    missing_packages = [pkg for pkg in required_packages if importlib.util.find_spec(pkg) is None]
+
+    if not missing_packages:
         print("✅ Core dependencies installed")
         return True
-    except ImportError as e:
-        print(f"❌ Missing dependencies - Run: uv pip install -e .")
-        return False
+
+    print("❌ Missing dependencies - Run: uv pip install -e .")
+    return False
 
 
 def check_env_file():
@@ -70,7 +72,7 @@ def check_database_url():
         from backend.app.config import Settings
         settings = Settings()
         if settings.DATABASE_URL:
-            print(f"✅ DATABASE_URL configured")
+            print("✅ DATABASE_URL configured")
             return True
     except Exception as e:
         print(f"❌ DATABASE_URL not configured: {e}")
@@ -81,7 +83,7 @@ def main():
     """Run all verification checks."""
     print("\n🔍 Verifying Local Development Setup\n")
     print("=" * 50)
-    
+
     checks = [
         ("Python Version", check_python_version),
         ("UV Package Manager", check_uv_installed),
@@ -90,7 +92,7 @@ def main():
         ("Environment File", check_env_file),
         ("Database Config", check_database_url),
     ]
-    
+
     results = []
     for name, check_func in checks:
         try:
@@ -100,12 +102,12 @@ def main():
             print(f"❌ {name}: Error - {e}")
             results.append(False)
         print()
-    
+
     print("=" * 50)
     passed = sum(results)
     total = len(results)
     print(f"\n📊 Results: {passed}/{total} checks passed")
-    
+
     if passed == total:
         print("\n✅ Local setup verified! Ready to run the API.")
         print("\n🚀 Next steps:")

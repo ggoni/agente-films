@@ -1,7 +1,6 @@
 """Unit tests for ADKRunner."""
 
-from typing import Any
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -48,7 +47,7 @@ async def test_adk_runner_send_message_saves_question() -> None:
     session_id = uuid4()
     session_manager = Mock()
     session_manager.get_or_create_session.return_value = {"id": str(session_id)}
-    
+
     persistence_service = Mock()
     persistence_service.save_question = Mock(return_value=uuid4())
     persistence_service.save_answer = Mock(return_value=uuid4())
@@ -57,7 +56,7 @@ async def test_adk_runner_send_message_saves_question() -> None:
     await runner.initialize()
 
     message = "Create a film about Ada Lovelace"
-    response = await runner.send_message(message)
+    await runner.send_message(message)
 
     persistence_service.save_question.assert_called_once()
     call_args = persistence_service.save_question.call_args
@@ -73,7 +72,7 @@ async def test_adk_runner_send_message_saves_answer() -> None:
     session_id = uuid4()
     session_manager = Mock()
     session_manager.get_or_create_session.return_value = {"id": str(session_id)}
-    
+
     persistence_service = Mock()
     persistence_service.save_question = Mock(return_value=uuid4())
     persistence_service.save_answer = Mock(return_value=uuid4())

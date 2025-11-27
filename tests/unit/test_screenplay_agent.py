@@ -1,7 +1,7 @@
 """Unit tests for ScreenplayAgent."""
 
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 

@@ -1,14 +1,13 @@
 """FastAPI application with screenplay generation endpoint."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.models import ErrorResponse, ScreenplayRequest, ScreenplayResponse
 from src.api.repository import ADKScreenplayRepository, ScreenplayRepository
-
 
 # Repository instance (injected in production)
 _repository: ScreenplayRepository | None = None
@@ -27,11 +26,11 @@ def get_repository() -> ScreenplayRepository:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan handler.
 
     Args:
-        app: FastAPI application instance
+        _app: FastAPI application instance (unused)
 
     Yields:
         None

@@ -1,6 +1,7 @@
 """Pytest configuration and fixtures."""
 
-from typing import Any, AsyncGenerator
+from collections.abc import AsyncGenerator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -26,6 +27,7 @@ def mock_llm_response() -> dict[str, Any]:
             {"name": "ARIA", "description": "Self-aware AI with empathy"},
             {"name": "Dr. Chen", "description": "Ethical researcher"},
         ],
+        "agent_used": "screenplay_writer",
     }
 
 

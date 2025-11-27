@@ -129,6 +129,6 @@ def test_film_concept_team_sub_agents_in_order() -> None:
             agent_names.append(a["name"])
         else:
             agent_names.append(a.name)
-    
+
     assert agent_names == ["writers_room", "preproduction_team", "file_writer"]
 

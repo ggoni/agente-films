@@ -9,13 +9,14 @@ Simulates a complete user journey:
 
 import asyncio
 import sys
+
 import httpx
 
 BASE_URL = "http://localhost:8000"
 
 async def run_e2e_test():
     print("🎬 Starting End-to-End Test for Agente Films...")
-    
+
     async with httpx.AsyncClient(base_url=BASE_URL, timeout=30.0) as client:
         # 1. Health Check
         print("\n1️⃣  Checking API Health...")
@@ -43,7 +44,7 @@ async def run_e2e_test():
         print("\n3️⃣  Sending Message to Agent...")
         message = "I want to make a sci-fi movie about AI."
         print(f"📤 Sending: '{message}'")
-        
+
         try:
             # Note: We are mocking the ADK runner in the backend for now,
             # so we expect a mock response.
@@ -52,12 +53,12 @@ async def run_e2e_test():
             data = resp.json()
             response_text = data["response"]
             print(f"✅ Agent Response: '{response_text}'")
-            
+
             if "Processed:" in response_text or "Hello" in response_text:
                  print("✅ Response content verified.")
             else:
                  print("⚠️ Unexpected response content.")
-                 
+
         except Exception as e:
             print(f"❌ Message Sending Failed: {e}")
             sys.exit(1)
@@ -67,7 +68,7 @@ async def run_e2e_test():
         try:
             resp = await client.get(f"/sessions/{session_id}")
             resp.raise_for_status()
-            print(f"✅ Session Retrieved Successfully")
+            print("✅ Session Retrieved Successfully")
         except Exception as e:
             print(f"❌ Session Retrieval Failed: {e}")
             sys.exit(1)

@@ -1,5 +1,6 @@
 """WebSocket endpoint for streaming agent responses."""
 
+from contextlib import suppress
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
@@ -81,10 +82,8 @@ async def websocket_endpoint(
         pass
     except Exception as e:
         # Unexpected error
-        try:
+        with suppress(Exception):
             await websocket.send_json({
                 "type": "error",
                 "content": f"Server error: {str(e)}",
             })
-        except:
-            pass  # Connection may already be closed

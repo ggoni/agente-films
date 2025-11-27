@@ -33,7 +33,7 @@ class SessionManager:
         """
         if session_id not in self._sessions:
             self._sessions[session_id] = self._create_adk_session(session_id)
-        
+
         return self._sessions[session_id]
 
     def _create_adk_session(self, session_id: UUID) -> Any:

@@ -1,7 +1,7 @@
 """Unit tests for database models."""
 
-from datetime import datetime, timezone
-from uuid import UUID, uuid4
+from datetime import UTC, datetime
+from uuid import uuid4
 
 from sqlalchemy import inspect
 
@@ -14,8 +14,8 @@ def test_session_model_has_required_fields() -> None:
     session = Session(
         id=session_id,
         status="active",
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     assert session.id == session_id
@@ -44,7 +44,7 @@ def test_session_with_metadata() -> None:
     """Test that Session model can store metadata as JSON."""
     session_id = uuid4()
     metadata = {"user_id": "123", "source": "web"}
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     session = Session(
         id=session_id,
         status="active",
@@ -59,7 +59,7 @@ def test_session_with_metadata() -> None:
 
 def test_session_status_values() -> None:
     """Test that Session model accepts different status values."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     for status in ["active", "completed", "failed", "cancelled"]:
         session = Session(id=uuid4(), status=status, created_at=now, updated_at=now)
         assert session.status == status
