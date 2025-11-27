@@ -49,6 +49,7 @@ async def async_client(db_session: Session) -> AsyncGenerator[AsyncClient, None]
     """
     Yield an async test client with overridden DB dependency.
     """
+
     def override_get_db():
         try:
             yield db_session

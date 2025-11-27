@@ -56,4 +56,3 @@ async def root() -> dict[str, str]:
         "version": "1.0.0",
         "docs": "/docs",
     }
-

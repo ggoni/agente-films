@@ -101,9 +101,7 @@ class TestScreenplayAgentWithMockedLLM:
     ) -> None:
         """Test agent passes concept to LLM correctly."""
         # Mock the ADK agent's generate method
-        mock_async_agent.generate = AsyncMock(
-            return_value="Generated screenplay content"
-        )
+        mock_async_agent.generate = AsyncMock(return_value="Generated screenplay content")
 
         agent = ScreenplayAgent()
         agent.agent = mock_async_agent

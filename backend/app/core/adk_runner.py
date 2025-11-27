@@ -113,11 +113,13 @@ class ADKRunner:
 
         # Helper to run an agent step
         async def run_agent_step(agent_name: str, agent_obj: Any, input_text: str) -> str:
-            thoughts.append({
-                "agent": agent_name,
-                "text": f"Processing: {input_text[:50]}...",
-                "status": "starting"
-            })
+            thoughts.append(
+                {
+                    "agent": agent_name,
+                    "text": f"Processing: {input_text[:50]}...",
+                    "status": "starting",
+                }
+            )
 
             # Support both dict and object agent definitions
             if isinstance(agent_obj, dict):
@@ -130,34 +132,34 @@ class ADKRunner:
             # Construct prompt
             messages = [
                 {"role": "system", "content": instruction},
-                {"role": "user", "content": input_text}
+                {"role": "user", "content": input_text},
             ]
 
             try:
-                masked_key = settings.LITELLM_API_KEY[:4] + "***" if settings.LITELLM_API_KEY else "None"
-                print(f"DEBUG: Calling LiteLLM with base={settings.LITELLM_BASE_URL}, key={masked_key}, model={model}")
+                masked_key = (
+                    settings.LITELLM_API_KEY[:4] + "***" if settings.LITELLM_API_KEY else "None"
+                )
+                print(
+                    f"DEBUG: Calling LiteLLM with base={settings.LITELLM_BASE_URL}, key={masked_key}, model={model}"
+                )
 
                 response = completion(
                     model=model,
                     messages=messages,
                     api_base=settings.LITELLM_BASE_URL,
                     api_key=settings.LITELLM_API_KEY,
-                    custom_llm_provider="openai"
+                    custom_llm_provider="openai",
                 )
                 content = response.choices[0].message.content
 
-                thoughts.append({
-                    "agent": agent_name,
-                    "text": "Generated response",
-                    "status": "completed"
-                })
+                thoughts.append(
+                    {"agent": agent_name, "text": "Generated response", "status": "completed"}
+                )
                 return content
             except Exception as e:
-                thoughts.append({
-                    "agent": agent_name,
-                    "text": f"Error: {str(e)}",
-                    "status": "error"
-                })
+                thoughts.append(
+                    {"agent": agent_name, "text": f"Error: {str(e)}", "status": "error"}
+                )
                 return f"Error executing {agent_name}: {str(e)}"
 
         # 1. Greeter
@@ -185,10 +187,7 @@ class ADKRunner:
 {critic_response}
 """
 
-        return {
-            "response": final_response,
-            "thoughts": thoughts
-        }
+        return {"response": final_response, "thoughts": thoughts}
 
     async def save_state_snapshot(self, state: dict[str, Any]) -> None:
         """

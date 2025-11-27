@@ -37,25 +37,32 @@ Base = declarative_base()
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     email = Column(String(255), nullable=False, unique=True)
     username = Column(String(100), nullable=False, unique=True)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
     metadata = Column(JSONB, default={})
     is_active = Column(Boolean, default=True)
 
     # Relationships
-    sessions = relationship('Session', back_populates='user', cascade='all, delete-orphan')
-    film_projects = relationship('FilmProject', back_populates='user', cascade='all, delete-orphan')
-    questions = relationship('Question', back_populates='user', cascade='all, delete-orphan')
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+    film_projects = relationship("FilmProject", back_populates="user", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="user", cascade="all, delete-orphan")
 
     __table_args__ = (
-        Index('idx_users_email', 'email'),
-        Index('idx_users_active', 'is_active', postgresql_where=(is_active)),
-        Index('idx_users_created_at', 'created_at', postgresql_using='btree', postgresql_ops={'created_at': 'DESC'}),
+        Index("idx_users_email", "email"),
+        Index("idx_users_active", "is_active", postgresql_where=(is_active)),
+        Index(
+            "idx_users_created_at",
+            "created_at",
+            postgresql_using="btree",
+            postgresql_ops={"created_at": "DESC"},
+        ),
     )
 
     def __repr__(self):
@@ -63,10 +70,10 @@ class User(Base):
 
 
 class Session(Base):
-    __tablename__ = 'sessions'
+    __tablename__ = "sessions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
     session_name = Column(String(255))
     started_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now())
     ended_at = Column(TIMESTAMP(timezone=True))
@@ -77,11 +84,7 @@ class Session(Base):
     agent_config = Column(JSONB)
 
     # Status
-    status = Column(
-        String(50),
-        default='active',
-        nullable=False
-    )
+    status = Column(String(50), default="active", nullable=False)
 
     # Performance metrics
     total_events = Column(Integer, default=0)
@@ -92,29 +95,60 @@ class Session(Base):
     metadata = Column(JSONB, default={})
 
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
-    user = relationship('User', back_populates='sessions')
-    questions = relationship('Question', back_populates='session', cascade='all, delete-orphan')
-    answers = relationship('Answer', back_populates='session', cascade='all, delete-orphan')
-    events = relationship('Event', back_populates='session', cascade='all, delete-orphan')
-    film_projects = relationship('FilmProject', back_populates='session', cascade='all, delete-orphan')
-    agent_transfers = relationship('AgentTransfer', back_populates='session', cascade='all, delete-orphan')
-    state_snapshots = relationship('StateSnapshot', back_populates='session', cascade='all, delete-orphan')
-    reasoning_events = relationship('InferentialReasoning', back_populates='session', cascade='all, delete-orphan')
+    user = relationship("User", back_populates="sessions")
+    questions = relationship("Question", back_populates="session", cascade="all, delete-orphan")
+    answers = relationship("Answer", back_populates="session", cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="session", cascade="all, delete-orphan")
+    film_projects = relationship(
+        "FilmProject", back_populates="session", cascade="all, delete-orphan"
+    )
+    agent_transfers = relationship(
+        "AgentTransfer", back_populates="session", cascade="all, delete-orphan"
+    )
+    state_snapshots = relationship(
+        "StateSnapshot", back_populates="session", cascade="all, delete-orphan"
+    )
+    reasoning_events = relationship(
+        "InferentialReasoning", back_populates="session", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
-        CheckConstraint("status IN ('active', 'completed', 'failed', 'archived')", name='sessions_status_check'),
-        Index('idx_sessions_user_id', 'user_id'),
-        Index('idx_sessions_status', 'status'),
-        Index('idx_sessions_started_at', 'started_at', postgresql_ops={'started_at': 'DESC'}),
-        Index('idx_sessions_user_started', 'user_id', 'started_at', postgresql_ops={'started_at': 'DESC'}),
-        Index('idx_sessions_active', 'status', 'started_at',
-              postgresql_where=(status == 'active'),
-              postgresql_ops={'started_at': 'DESC'}),
-        Index('idx_sessions_state', 'state', postgresql_using='gin', postgresql_ops={'state': 'jsonb_path_ops'}),
-        Index('idx_sessions_metadata', 'metadata', postgresql_using='gin', postgresql_ops={'metadata': 'jsonb_path_ops'}),
+        CheckConstraint(
+            "status IN ('active', 'completed', 'failed', 'archived')", name="sessions_status_check"
+        ),
+        Index("idx_sessions_user_id", "user_id"),
+        Index("idx_sessions_status", "status"),
+        Index("idx_sessions_started_at", "started_at", postgresql_ops={"started_at": "DESC"}),
+        Index(
+            "idx_sessions_user_started",
+            "user_id",
+            "started_at",
+            postgresql_ops={"started_at": "DESC"},
+        ),
+        Index(
+            "idx_sessions_active",
+            "status",
+            "started_at",
+            postgresql_where=(status == "active"),
+            postgresql_ops={"started_at": "DESC"},
+        ),
+        Index(
+            "idx_sessions_state",
+            "state",
+            postgresql_using="gin",
+            postgresql_ops={"state": "jsonb_path_ops"},
+        ),
+        Index(
+            "idx_sessions_metadata",
+            "metadata",
+            postgresql_using="gin",
+            postgresql_ops={"metadata": "jsonb_path_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -129,11 +163,11 @@ class Session(Base):
 
 
 class FilmProject(Base):
-    __tablename__ = 'film_projects'
+    __tablename__ = "film_projects"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'))
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'))
+    session_id = Column(UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
 
     # Film details
     title = Column(String(500))
@@ -141,7 +175,7 @@ class FilmProject(Base):
     genre = Column(String(100))
 
     # Status
-    status = Column(String(50), default='draft')
+    status = Column(String(50), default="draft")
 
     # Content (denormalized from state)
     plot_outline = Column(Text)
@@ -156,21 +190,35 @@ class FilmProject(Base):
     metadata = Column(JSONB, default={})
 
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now())
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
     # Relationships
-    session = relationship('Session', back_populates='film_projects')
-    user = relationship('User', back_populates='film_projects')
+    session = relationship("Session", back_populates="film_projects")
+    user = relationship("User", back_populates="film_projects")
 
     __table_args__ = (
-        CheckConstraint("status IN ('draft', 'in_progress', 'completed', 'archived')", name='film_projects_status_check'),
-        Index('idx_film_projects_session_id', 'session_id'),
-        Index('idx_film_projects_user_id', 'user_id'),
-        Index('idx_film_projects_status', 'status'),
-        Index('idx_film_projects_created_at', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_film_projects_title_trgm', 'title', postgresql_using='gin', postgresql_ops={'title': 'gin_trgm_ops'}),
-        Index('idx_film_projects_subject_trgm', 'historical_subject', postgresql_using='gin',
-              postgresql_ops={'historical_subject': 'gin_trgm_ops'}),
+        CheckConstraint(
+            "status IN ('draft', 'in_progress', 'completed', 'archived')",
+            name="film_projects_status_check",
+        ),
+        Index("idx_film_projects_session_id", "session_id"),
+        Index("idx_film_projects_user_id", "user_id"),
+        Index("idx_film_projects_status", "status"),
+        Index("idx_film_projects_created_at", "created_at", postgresql_ops={"created_at": "DESC"}),
+        Index(
+            "idx_film_projects_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_film_projects_subject_trgm",
+            "historical_subject",
+            postgresql_using="gin",
+            postgresql_ops={"historical_subject": "gin_trgm_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -178,11 +226,13 @@ class FilmProject(Base):
 
 
 class Question(Base):
-    __tablename__ = 'questions'
+    __tablename__ = "questions"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     # Content
     content = Column(Text, nullable=False)
@@ -198,16 +248,23 @@ class Question(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='questions')
-    user = relationship('User', back_populates='questions')
-    answers = relationship('Answer', back_populates='question', cascade='all, delete-orphan')
-    reasoning_events = relationship('InferentialReasoning', back_populates='question', cascade='all, delete-orphan')
+    session = relationship("Session", back_populates="questions")
+    user = relationship("User", back_populates="questions")
+    answers = relationship("Answer", back_populates="question", cascade="all, delete-orphan")
+    reasoning_events = relationship(
+        "InferentialReasoning", back_populates="question", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
-        Index('idx_questions_session_id', 'session_id', 'sequence_number'),
-        Index('idx_questions_user_id', 'user_id'),
-        Index('idx_questions_asked_at', 'asked_at', postgresql_ops={'asked_at': 'DESC'}),
-        Index('idx_questions_content_trgm', 'content', postgresql_using='gin', postgresql_ops={'content': 'gin_trgm_ops'}),
+        Index("idx_questions_session_id", "session_id", "sequence_number"),
+        Index("idx_questions_user_id", "user_id"),
+        Index("idx_questions_asked_at", "asked_at", postgresql_ops={"asked_at": "DESC"}),
+        Index(
+            "idx_questions_content_trgm",
+            "content",
+            postgresql_using="gin",
+            postgresql_ops={"content": "gin_trgm_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -215,11 +272,13 @@ class Question(Base):
 
 
 class Answer(Base):
-    __tablename__ = 'answers'
+    __tablename__ = "answers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
-    question_id = Column(UUID(as_uuid=True), ForeignKey('questions.id', ondelete='CASCADE'))
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id", ondelete="CASCADE"))
 
     # Content
     content = Column(Text, nullable=False)
@@ -242,16 +301,23 @@ class Answer(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='answers')
-    question = relationship('Question', back_populates='answers')
-    reasoning_events = relationship('InferentialReasoning', back_populates='answer', cascade='all, delete-orphan')
+    session = relationship("Session", back_populates="answers")
+    question = relationship("Question", back_populates="answers")
+    reasoning_events = relationship(
+        "InferentialReasoning", back_populates="answer", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
-        Index('idx_answers_session_id', 'session_id', 'sequence_number'),
-        Index('idx_answers_question_id', 'question_id'),
-        Index('idx_answers_agent_name', 'agent_name'),
-        Index('idx_answers_answered_at', 'answered_at', postgresql_ops={'answered_at': 'DESC'}),
-        Index('idx_answers_content_trgm', 'content', postgresql_using='gin', postgresql_ops={'content': 'gin_trgm_ops'}),
+        Index("idx_answers_session_id", "session_id", "sequence_number"),
+        Index("idx_answers_question_id", "question_id"),
+        Index("idx_answers_agent_name", "agent_name"),
+        Index("idx_answers_answered_at", "answered_at", postgresql_ops={"answered_at": "DESC"}),
+        Index(
+            "idx_answers_content_trgm",
+            "content",
+            postgresql_using="gin",
+            postgresql_ops={"content": "gin_trgm_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -259,12 +325,14 @@ class Answer(Base):
 
 
 class InferentialReasoning(Base):
-    __tablename__ = 'inferential_reasoning'
+    __tablename__ = "inferential_reasoning"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
-    question_id = Column(UUID(as_uuid=True), ForeignKey('questions.id', ondelete='CASCADE'))
-    answer_id = Column(UUID(as_uuid=True), ForeignKey('answers.id', ondelete='CASCADE'))
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    question_id = Column(UUID(as_uuid=True), ForeignKey("questions.id", ondelete="CASCADE"))
+    answer_id = Column(UUID(as_uuid=True), ForeignKey("answers.id", ondelete="CASCADE"))
 
     # Agent info
     agent_name = Column(String(100), nullable=False)
@@ -287,23 +355,27 @@ class InferentialReasoning(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='reasoning_events')
-    question = relationship('Question', back_populates='reasoning_events')
-    answer = relationship('Answer', back_populates='reasoning_events')
+    session = relationship("Session", back_populates="reasoning_events")
+    question = relationship("Question", back_populates="reasoning_events")
+    answer = relationship("Answer", back_populates="reasoning_events")
 
     __table_args__ = (
         CheckConstraint(
             "reasoning_type IN ('research', 'planning', 'critique', 'analysis', 'decision', 'other')",
-            name='inferential_reasoning_type_check'
+            name="inferential_reasoning_type_check",
         ),
-        Index('idx_reasoning_session_id', 'session_id', 'sequence_number'),
-        Index('idx_reasoning_question_id', 'question_id'),
-        Index('idx_reasoning_answer_id', 'answer_id'),
-        Index('idx_reasoning_agent', 'agent_name'),
-        Index('idx_reasoning_type', 'reasoning_type'),
-        Index('idx_reasoning_created_at', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_reasoning_state_delta', 'state_delta', postgresql_using='gin',
-              postgresql_ops={'state_delta': 'jsonb_path_ops'}),
+        Index("idx_reasoning_session_id", "session_id", "sequence_number"),
+        Index("idx_reasoning_question_id", "question_id"),
+        Index("idx_reasoning_answer_id", "answer_id"),
+        Index("idx_reasoning_agent", "agent_name"),
+        Index("idx_reasoning_type", "reasoning_type"),
+        Index("idx_reasoning_created_at", "created_at", postgresql_ops={"created_at": "DESC"}),
+        Index(
+            "idx_reasoning_state_delta",
+            "state_delta",
+            postgresql_using="gin",
+            postgresql_ops={"state_delta": "jsonb_path_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -315,10 +387,13 @@ class Event(Base):
     Note: This is a base model for the partitioned events table.
     In practice, you'll interact with specific partitions (events_2025_01, etc.)
     """
-    __tablename__ = 'events'
+
+    __tablename__ = "events"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Event type
     event_type = Column(String(100), nullable=False)
@@ -352,21 +427,37 @@ class Event(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='events')
+    session = relationship("Session", back_populates="events")
 
     __table_args__ = (
         CheckConstraint(
-            "event_type IN ('user_message', 'agent_response', 'tool_call', 'tool_response', " +
-            "'agent_transfer', 'state_update', 'loop_iteration', 'error', 'other')",
-            name='events_type_check'
+            "event_type IN ('user_message', 'agent_response', 'tool_call', 'tool_response', "
+            + "'agent_transfer', 'state_update', 'loop_iteration', 'error', 'other')",
+            name="events_type_check",
         ),
-        Index('idx_events_session_id', 'session_id', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_events_type', 'event_type', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_events_agent', 'agent_name', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_events_tool', 'tool_name', postgresql_where=(tool_name is not None)),
-        Index('idx_events_data', 'event_data', postgresql_using='gin', postgresql_ops={'event_data': 'jsonb_path_ops'}),
-        Index('idx_events_state_delta', 'state_delta', postgresql_using='gin',
-              postgresql_ops={'state_delta': 'jsonb_path_ops'}),
+        Index(
+            "idx_events_session_id",
+            "session_id",
+            "created_at",
+            postgresql_ops={"created_at": "DESC"},
+        ),
+        Index("idx_events_type", "event_type", "created_at", postgresql_ops={"created_at": "DESC"}),
+        Index(
+            "idx_events_agent", "agent_name", "created_at", postgresql_ops={"created_at": "DESC"}
+        ),
+        Index("idx_events_tool", "tool_name", postgresql_where=(tool_name is not None)),
+        Index(
+            "idx_events_data",
+            "event_data",
+            postgresql_using="gin",
+            postgresql_ops={"event_data": "jsonb_path_ops"},
+        ),
+        Index(
+            "idx_events_state_delta",
+            "state_delta",
+            postgresql_using="gin",
+            postgresql_ops={"state_delta": "jsonb_path_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -374,10 +465,12 @@ class Event(Base):
 
 
 class AgentTransfer(Base):
-    __tablename__ = 'agent_transfers'
+    __tablename__ = "agent_transfers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
     event_id = Column(UUID(as_uuid=True))
 
     # Transfer details
@@ -392,13 +485,17 @@ class AgentTransfer(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='agent_transfers')
+    session = relationship("Session", back_populates="agent_transfers")
 
     __table_args__ = (
-        Index('idx_transfers_session_id', 'session_id', 'transferred_at',
-              postgresql_ops={'transferred_at': 'DESC'}),
-        Index('idx_transfers_from_agent', 'from_agent'),
-        Index('idx_transfers_to_agent', 'to_agent'),
+        Index(
+            "idx_transfers_session_id",
+            "session_id",
+            "transferred_at",
+            postgresql_ops={"transferred_at": "DESC"},
+        ),
+        Index("idx_transfers_from_agent", "from_agent"),
+        Index("idx_transfers_to_agent", "to_agent"),
     )
 
     def __repr__(self):
@@ -406,10 +503,12 @@ class AgentTransfer(Base):
 
 
 class StateSnapshot(Base):
-    __tablename__ = 'state_snapshots'
+    __tablename__ = "state_snapshots"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    session_id = Column(UUID(as_uuid=True), ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
+    session_id = Column(
+        UUID(as_uuid=True), ForeignKey("sessions.id", ondelete="CASCADE"), nullable=False
+    )
 
     # Snapshot details
     snapshot_type = Column(String(50))
@@ -424,13 +523,25 @@ class StateSnapshot(Base):
     metadata = Column(JSONB, default={})
 
     # Relationships
-    session = relationship('Session', back_populates='state_snapshots')
+    session = relationship("Session", back_populates="state_snapshots")
 
     __table_args__ = (
-        CheckConstraint("snapshot_type IN ('manual', 'automatic', 'checkpoint')", name='snapshot_type_check'),
-        Index('idx_snapshots_session_id', 'session_id', 'created_at', postgresql_ops={'created_at': 'DESC'}),
-        Index('idx_snapshots_type', 'snapshot_type'),
-        Index('idx_snapshots_state', 'state', postgresql_using='gin', postgresql_ops={'state': 'jsonb_path_ops'}),
+        CheckConstraint(
+            "snapshot_type IN ('manual', 'automatic', 'checkpoint')", name="snapshot_type_check"
+        ),
+        Index(
+            "idx_snapshots_session_id",
+            "session_id",
+            "created_at",
+            postgresql_ops={"created_at": "DESC"},
+        ),
+        Index("idx_snapshots_type", "snapshot_type"),
+        Index(
+            "idx_snapshots_state",
+            "state",
+            postgresql_using="gin",
+            postgresql_ops={"state": "jsonb_path_ops"},
+        ),
     )
 
     def __repr__(self):
@@ -438,12 +549,14 @@ class StateSnapshot(Base):
 
 
 class SystemConfig(Base):
-    __tablename__ = 'system_config'
+    __tablename__ = "system_config"
 
     key = Column(String(100), primary_key=True)
     value = Column(JSONB, nullable=False)
     description = Column(Text)
-    updated_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
 
     def __repr__(self):
         return f"<SystemConfig(key='{self.key}', value={self.value})>"
@@ -451,12 +564,9 @@ class SystemConfig(Base):
 
 # Helper functions for working with models
 
+
 def create_session(
-    db,
-    user_id: str,
-    session_name: str,
-    root_agent_name: str,
-    agent_config: dict[str, Any]
+    db, user_id: str, session_name: str, root_agent_name: str, agent_config: dict[str, Any]
 ) -> Session:
     """Create a new ADK session"""
     session = Session(
@@ -465,7 +575,7 @@ def create_session(
         root_agent_name=root_agent_name,
         agent_config=agent_config,
         state={},
-        status='active'
+        status="active",
     )
     db.add(session)
     db.commit()
@@ -479,7 +589,7 @@ def add_question(
     user_id: str,
     content: str,
     sequence_number: int,
-    context: dict[str, Any] | None = None
+    context: dict[str, Any] | None = None,
 ) -> Question:
     """Add a user question to the session"""
     question = Question(
@@ -487,7 +597,7 @@ def add_question(
         user_id=user_id,
         content=content,
         sequence_number=sequence_number,
-        context=context or {}
+        context=context or {},
     )
     db.add(question)
     db.commit()
@@ -501,10 +611,10 @@ def add_reasoning(
     agent_name: str,
     content: str,
     sequence_number: int,
-    reasoning_type: str = 'other',
+    reasoning_type: str = "other",
     question_id: str | None = None,
     answer_id: str | None = None,
-    state_delta: dict[str, Any] | None = None
+    state_delta: dict[str, Any] | None = None,
 ) -> InferentialReasoning:
     """Add agent reasoning/thinking event"""
     reasoning = InferentialReasoning(
@@ -515,7 +625,7 @@ def add_reasoning(
         reasoning_type=reasoning_type,
         content=content,
         sequence_number=sequence_number,
-        state_delta=state_delta
+        state_delta=state_delta,
     )
     db.add(reasoning)
     db.commit()
@@ -531,7 +641,7 @@ def add_answer(
     sequence_number: int,
     question_id: str | None = None,
     tokens_used: int | None = None,
-    response_time_ms: int | None = None
+    response_time_ms: int | None = None,
 ) -> Answer:
     """Add agent answer to the session"""
     answer = Answer(
@@ -541,7 +651,7 @@ def add_answer(
         content=content,
         sequence_number=sequence_number,
         tokens_used=tokens_used,
-        response_time_ms=response_time_ms
+        response_time_ms=response_time_ms,
     )
     db.add(answer)
     db.commit()
@@ -549,11 +659,7 @@ def add_answer(
     return answer
 
 
-def update_session_state(
-    db,
-    session_id: str,
-    state_updates: dict[str, Any]
-) -> Session:
+def update_session_state(db, session_id: str, state_updates: dict[str, Any]) -> Session:
     """Update session state dictionary"""
     session = db.query(Session).filter(Session.id == session_id).first()
     if session:
@@ -567,10 +673,7 @@ def update_session_state(
 
 
 def create_state_snapshot(
-    db,
-    session_id: str,
-    snapshot_type: str = 'manual',
-    description: str | None = None
+    db, session_id: str, snapshot_type: str = "manual", description: str | None = None
 ) -> StateSnapshot:
     """Create a point-in-time state snapshot"""
     session = db.query(Session).filter(Session.id == session_id).first()
@@ -581,7 +684,7 @@ def create_state_snapshot(
         session_id=session_id,
         snapshot_type=snapshot_type,
         state=session.state,
-        description=description
+        description=description,
     )
     db.add(snapshot)
     db.commit()
@@ -595,54 +698,65 @@ def get_conversation_context(db, session_id: str) -> dict[str, Any]:
     if not session:
         return {}
 
-    questions = db.query(Question).filter(
-        Question.session_id == session_id
-    ).order_by(Question.sequence_number).all()
+    questions = (
+        db.query(Question)
+        .filter(Question.session_id == session_id)
+        .order_by(Question.sequence_number)
+        .all()
+    )
 
     conversation = []
     for question in questions:
         # Get reasoning for this question
-        reasoning = db.query(InferentialReasoning).filter(
-            InferentialReasoning.question_id == question.id
-        ).order_by(InferentialReasoning.sequence_number).all()
+        reasoning = (
+            db.query(InferentialReasoning)
+            .filter(InferentialReasoning.question_id == question.id)
+            .order_by(InferentialReasoning.sequence_number)
+            .all()
+        )
 
         # Get answers for this question
-        answers = db.query(Answer).filter(
-            Answer.question_id == question.id
-        ).order_by(Answer.sequence_number).all()
+        answers = (
+            db.query(Answer)
+            .filter(Answer.question_id == question.id)
+            .order_by(Answer.sequence_number)
+            .all()
+        )
 
-        conversation.append({
-            'question': {
-                'id': str(question.id),
-                'content': question.content,
-                'sequence': question.sequence_number,
-                'asked_at': question.asked_at.isoformat()
-            },
-            'reasoning': [
-                {
-                    'agent': r.agent_name,
-                    'type': r.reasoning_type,
-                    'content': r.content,
-                    'state_delta': r.state_delta
-                }
-                for r in reasoning
-            ],
-            'answers': [
-                {
-                    'id': str(a.id),
-                    'agent': a.agent_name,
-                    'content': a.content,
-                    'tokens': a.tokens_used,
-                    'answered_at': a.answered_at.isoformat()
-                }
-                for a in answers
-            ]
-        })
+        conversation.append(
+            {
+                "question": {
+                    "id": str(question.id),
+                    "content": question.content,
+                    "sequence": question.sequence_number,
+                    "asked_at": question.asked_at.isoformat(),
+                },
+                "reasoning": [
+                    {
+                        "agent": r.agent_name,
+                        "type": r.reasoning_type,
+                        "content": r.content,
+                        "state_delta": r.state_delta,
+                    }
+                    for r in reasoning
+                ],
+                "answers": [
+                    {
+                        "id": str(a.id),
+                        "agent": a.agent_name,
+                        "content": a.content,
+                        "tokens": a.tokens_used,
+                        "answered_at": a.answered_at.isoformat(),
+                    }
+                    for a in answers
+                ],
+            }
+        )
 
     return {
-        'session_id': str(session.id),
-        'session_name': session.session_name,
-        'state': session.state,
-        'agent_config': session.agent_config,
-        'conversation': conversation
+        "session_id": str(session.id),
+        "session_name": session.session_name,
+        "state": session.state,
+        "agent_config": session.agent_config,
+        "conversation": conversation,
     }

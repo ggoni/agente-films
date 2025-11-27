@@ -14,6 +14,7 @@ import httpx
 
 BASE_URL = "http://localhost:8000"
 
+
 async def run_e2e_test():
     print("🎬 Starting End-to-End Test for Agente Films...")
 
@@ -55,9 +56,9 @@ async def run_e2e_test():
             print(f"✅ Agent Response: '{response_text}'")
 
             if "Processed:" in response_text or "Hello" in response_text:
-                 print("✅ Response content verified.")
+                print("✅ Response content verified.")
             else:
-                 print("⚠️ Unexpected response content.")
+                print("⚠️ Unexpected response content.")
 
         except Exception as e:
             print(f"❌ Message Sending Failed: {e}")
@@ -74,6 +75,7 @@ async def run_e2e_test():
             sys.exit(1)
 
     print("\n🎉 End-to-End Test Completed Successfully!")
+
 
 if __name__ == "__main__":
     asyncio.run(run_e2e_test())

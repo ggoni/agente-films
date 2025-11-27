@@ -226,4 +226,3 @@ class SessionState(Base):
     def __repr__(self) -> str:
         """String representation of SessionState."""
         return f"<SessionState(id={self.id}, key={self.state_key}, v{self.version})>"
-

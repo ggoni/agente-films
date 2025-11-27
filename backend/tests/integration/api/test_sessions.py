@@ -36,6 +36,7 @@ async def test_get_session_integration(async_client: AsyncClient):
 async def test_get_nonexistent_session_integration(async_client: AsyncClient):
     """Test 404 for missing session."""
     import uuid
+
     fake_id = str(uuid.uuid4())
 
     response = await async_client.get(f"/sessions/{fake_id}")

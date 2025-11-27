@@ -1,7 +1,6 @@
 """Unit tests for file_writer agent."""
 
 
-
 def test_file_writer_agent_created() -> None:
     """Test that file_writer agent is created."""
     from backend.app.agents.file_writer import file_writer

@@ -47,35 +47,43 @@ async def websocket_endpoint(
             message = data.get("message", "")
 
             if not message:
-                await websocket.send_json({
-                    "type": "error",
-                    "content": "Message cannot be empty",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "content": "Message cannot be empty",
+                    }
+                )
                 continue
 
             # Send acknowledgment
-            await websocket.send_json({
-                "type": "status",
-                "content": "Processing your message...",
-            })
+            await websocket.send_json(
+                {
+                    "type": "status",
+                    "content": "Processing your message...",
+                }
+            )
 
             try:
                 # Process message through agent
                 response = await service.send_message(session_id, message)
 
                 # Send complete response
-                await websocket.send_json({
-                    "type": "response",
-                    "content": response,
-                    "session_id": str(session_id),
-                })
+                await websocket.send_json(
+                    {
+                        "type": "response",
+                        "content": response,
+                        "session_id": str(session_id),
+                    }
+                )
 
             except Exception as e:
                 # Send error to client
-                await websocket.send_json({
-                    "type": "error",
-                    "content": f"Error processing message: {str(e)}",
-                })
+                await websocket.send_json(
+                    {
+                        "type": "error",
+                        "content": f"Error processing message: {str(e)}",
+                    }
+                )
 
     except WebSocketDisconnect:
         # Client disconnected
@@ -83,7 +91,9 @@ async def websocket_endpoint(
     except Exception as e:
         # Unexpected error
         with suppress(Exception):
-            await websocket.send_json({
-                "type": "error",
-                "content": f"Server error: {str(e)}",
-            })
+            await websocket.send_json(
+                {
+                    "type": "error",
+                    "content": f"Server error: {str(e)}",
+                }
+            )

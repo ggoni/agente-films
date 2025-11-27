@@ -64,13 +64,10 @@ def append_to_state(tool_context: Any, key: str, content: str) -> dict[str, str]
 
     log_response(f"Appended to state[{key}]: {len(content)} characters")
 
-
     return {"status": "success"}
 
 
-def write_file(
-    _tool_context: Any, filename: str, directory: str, content: str
-) -> dict[str, Any]:
+def write_file(_tool_context: Any, filename: str, directory: str, content: str) -> dict[str, Any]:
     """
     Write content to a file in the specified directory.
 
@@ -110,4 +107,3 @@ def write_file(
         error_msg = f"File write failed: {str(e)}"
         log_response(error_msg)
         return {"status": "error", "error": error_msg}
-

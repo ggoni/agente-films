@@ -1,7 +1,6 @@
 """Unit tests for researcher agent."""
 
 
-
 def test_researcher_agent_created() -> None:
     """Test that researcher agent is created with correct name."""
     from backend.app.agents.researcher import researcher

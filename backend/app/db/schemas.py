@@ -76,4 +76,3 @@ class SessionStateCreate(BaseModel):
     state_key: str
     state_value: dict[str, Any]
     version: int = 1
-

@@ -130,4 +130,3 @@ film_concept_team = SequentialAgentConfig(
     description="Complete film pitch development workflow from concept to final document",
     sub_agents=[writers_room, preproduction_team, file_writer],
 )
-

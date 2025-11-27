@@ -36,6 +36,7 @@ async def test_send_message_integration(async_client: AsyncClient):
 async def test_send_message_session_not_found(async_client: AsyncClient):
     """Test sending message to non-existent session."""
     import uuid
+
     fake_id = str(uuid.uuid4())
     payload = {"message": "Hello"}
 

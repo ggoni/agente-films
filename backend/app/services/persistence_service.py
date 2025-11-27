@@ -32,7 +32,7 @@ class PersistenceService:
         question_text: str,
         agent_name: str | None = None,
         metadata: dict[str, Any] | None = None,
-   ) -> UUID:
+    ) -> UUID:
         """
         Save a question to the database.
 

@@ -34,7 +34,7 @@ from database.example_models import (
 )
 
 # Database connection
-DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://user:pass@localhost/agente_films')
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost/agente_films")
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(bind=engine)
 
@@ -46,9 +46,9 @@ def example_1_create_user_and_session():
     try:
         # Create user
         user = User(
-            email='filmmaker@example.com',
-            username='filmmaker123',
-            metadata={'preferences': {'theme': 'dark'}}
+            email="filmmaker@example.com",
+            username="filmmaker123",
+            metadata={"preferences": {"theme": "dark"}},
         )
         db.add(user)
         db.commit()
@@ -59,12 +59,12 @@ def example_1_create_user_and_session():
         session = create_session(
             db,
             user_id=str(user.id),
-            session_name='Ancient Doctor Film Pitch',
-            root_agent_name='greeter',
+            session_name="Ancient Doctor Film Pitch",
+            root_agent_name="greeter",
             agent_config={
-                'model': 'gemini-2.5-flash',
-                'agents': ['greeter', 'film_concept_team', 'writers_room']
-            }
+                "model": "gemini-2.5-flash",
+                "agents": ["greeter", "film_concept_team", "writers_room"],
+            },
         )
         print(f"Created session: {session}")
 
@@ -85,7 +85,7 @@ def example_2_record_conversation(user_id, session_id):
             session_id=str(session_id),
             user_id=str(user_id),
             content="I want to create a film about an ancient doctor",
-            sequence_number=1
+            sequence_number=1,
         )
         print(f"Added question: {question}")
 
@@ -94,13 +94,13 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             question_id=str(question.id),
-            agent_name='researcher',
-            reasoning_type='research',
-            content='Searching for historical doctors... Found Zhang Zhongjing (150-219 CE), renowned Chinese physician.',
+            agent_name="researcher",
+            reasoning_type="research",
+            content="Searching for historical doctors... Found Zhang Zhongjing (150-219 CE), renowned Chinese physician.",
             sequence_number=1,
             state_delta={
-                'research': ['Zhang Zhongjing was a Chinese physician during the Han Dynasty']
-            }
+                "research": ["Zhang Zhongjing was a Chinese physician during the Han Dynasty"]
+            },
         )
         print(f"Added reasoning: {reasoning1}")
 
@@ -109,8 +109,8 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             state_updates={
-                'research': ['Zhang Zhongjing was a Chinese physician during the Han Dynasty']
-            }
+                "research": ["Zhang Zhongjing was a Chinese physician during the Han Dynasty"]
+            },
         )
 
         # Agent 2: Screenwriter creates plot
@@ -118,13 +118,11 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             question_id=str(question.id),
-            agent_name='screenwriter',
-            reasoning_type='planning',
-            content='Creating three-act structure based on research...',
+            agent_name="screenwriter",
+            reasoning_type="planning",
+            content="Creating three-act structure based on research...",
             sequence_number=2,
-            state_delta={
-                'PLOT_OUTLINE': 'Act I: Young Zhang witnesses plague outbreak...'
-            }
+            state_delta={"PLOT_OUTLINE": "Act I: Young Zhang witnesses plague outbreak..."},
         )
 
         # Update session state with plot
@@ -132,8 +130,8 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             state_updates={
-                'PLOT_OUTLINE': 'Act I: Young Zhang witnesses plague outbreak in his village...'
-            }
+                "PLOT_OUTLINE": "Act I: Young Zhang witnesses plague outbreak in his village..."
+            },
         )
 
         # Agent 3: Critic reviews
@@ -141,13 +139,11 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             question_id=str(question.id),
-            agent_name='critic',
-            reasoning_type='critique',
-            content='Plot outline needs more emotional depth in Act II',
+            agent_name="critic",
+            reasoning_type="critique",
+            content="Plot outline needs more emotional depth in Act II",
             sequence_number=3,
-            state_delta={
-                'CRITICAL_FEEDBACK': 'Add more character development in Act II'
-            }
+            state_delta={"CRITICAL_FEEDBACK": "Add more character development in Act II"},
         )
 
         # Final answer to user
@@ -155,11 +151,11 @@ def example_2_record_conversation(user_id, session_id):
             db,
             session_id=str(session_id),
             question_id=str(question.id),
-            agent_name='file_writer',
+            agent_name="file_writer",
             content="I've created a plot outline for a film about Zhang Zhongjing. The file has been saved to movie_pitches/The_Healing_Hands.txt",
             sequence_number=4,
             tokens_used=2500,
-            response_time_ms=3200
+            response_time_ms=3200,
         )
         print(f"Added answer: {answer}")
 
@@ -178,22 +174,22 @@ def example_3_track_agent_transfers(session_id):
         transfers = [
             AgentTransfer(
                 session_id=str(session_id),
-                from_agent='greeter',
-                to_agent='film_concept_team',
-                transfer_reason='User provided historical subject'
+                from_agent="greeter",
+                to_agent="film_concept_team",
+                transfer_reason="User provided historical subject",
             ),
             AgentTransfer(
                 session_id=str(session_id),
-                from_agent='film_concept_team',
-                to_agent='writers_room',
-                transfer_reason='Starting iterative writing process'
+                from_agent="film_concept_team",
+                to_agent="writers_room",
+                transfer_reason="Starting iterative writing process",
             ),
             AgentTransfer(
                 session_id=str(session_id),
-                from_agent='writers_room',
-                to_agent='researcher',
-                transfer_reason='Loop iteration 1: Research phase'
-            )
+                from_agent="writers_room",
+                to_agent="researcher",
+                transfer_reason="Loop iteration 1: Research phase",
+            ),
         ]
 
         for transfer in transfers:
@@ -203,9 +199,12 @@ def example_3_track_agent_transfers(session_id):
         print(f"Recorded {len(transfers)} agent transfers")
 
         # Query transfer flow
-        flow = db.query(AgentTransfer).filter(
-            AgentTransfer.session_id == str(session_id)
-        ).order_by(AgentTransfer.transferred_at).all()
+        flow = (
+            db.query(AgentTransfer)
+            .filter(AgentTransfer.session_id == str(session_id))
+            .order_by(AgentTransfer.transferred_at)
+            .all()
+        )
 
         print("\nAgent Transfer Flow:")
         for t in flow:
@@ -227,15 +226,15 @@ def example_4_create_film_project(session_id, user_id):
         film = FilmProject(
             session_id=str(session_id),
             user_id=str(user_id),
-            title='The Healing Hands',
-            historical_subject='Zhang Zhongjing',
-            genre='Historical Drama',
-            status='completed',
-            plot_outline=session.state.get('PLOT_OUTLINE', ''),
-            research_summary='\n'.join(session.state.get('research', [])),
-            casting_report=session.state.get('casting_report', ''),
-            box_office_report=session.state.get('box_office_report', ''),
-            output_file_path='/path/to/movie_pitches/The_Healing_Hands.txt'
+            title="The Healing Hands",
+            historical_subject="Zhang Zhongjing",
+            genre="Historical Drama",
+            status="completed",
+            plot_outline=session.state.get("PLOT_OUTLINE", ""),
+            research_summary="\n".join(session.state.get("research", [])),
+            casting_report=session.state.get("casting_report", ""),
+            box_office_report=session.state.get("box_office_report", ""),
+            output_file_path="/path/to/movie_pitches/The_Healing_Hands.txt",
         )
 
         db.add(film)
@@ -258,15 +257,18 @@ def example_5_create_state_snapshot(session_id):
         snapshot = create_state_snapshot(
             db,
             session_id=str(session_id),
-            snapshot_type='checkpoint',
-            description='After completing plot outline'
+            snapshot_type="checkpoint",
+            description="After completing plot outline",
         )
         print(f"Created state snapshot: {snapshot}")
 
         # Later: Restore from snapshot
-        latest_snapshot = db.query(StateSnapshot).filter(
-            StateSnapshot.session_id == str(session_id)
-        ).order_by(desc(StateSnapshot.created_at)).first()
+        latest_snapshot = (
+            db.query(StateSnapshot)
+            .filter(StateSnapshot.session_id == str(session_id))
+            .order_by(desc(StateSnapshot.created_at))
+            .first()
+        )
 
         if latest_snapshot:
             print(f"\nLatest snapshot state: {latest_snapshot.state}")
@@ -287,13 +289,15 @@ def example_6_query_conversation_context(session_id):
         print(f"State: {context['state']}")
         print("\nConversation:")
 
-        for turn in context['conversation']:
+        for turn in context["conversation"]:
             print(f"\n  Q{turn['question']['sequence']}: {turn['question']['content']}")
 
-            for reasoning in turn['reasoning']:
-                print(f"    [{reasoning['agent']}] {reasoning['type']}: {reasoning['content'][:50]}...")
+            for reasoning in turn["reasoning"]:
+                print(
+                    f"    [{reasoning['agent']}] {reasoning['type']}: {reasoning['content'][:50]}..."
+                )
 
-            for answer in turn['answers']:
+            for answer in turn["answers"]:
                 print(f"    A[{answer['agent']}]: {answer['content'][:50]}...")
 
     finally:
@@ -306,11 +310,15 @@ def example_7_analytics_queries(user_id):
 
     try:
         # User activity summary
-        user_stats = db.query(
-            func.count(Session.id).label('total_sessions'),
-            func.sum(Session.total_events).label('total_events'),
-            func.sum(Session.total_tokens_used).label('total_tokens')
-        ).filter(Session.user_id == user_id).first()
+        user_stats = (
+            db.query(
+                func.count(Session.id).label("total_sessions"),
+                func.sum(Session.total_events).label("total_events"),
+                func.sum(Session.total_tokens_used).label("total_tokens"),
+            )
+            .filter(Session.user_id == user_id)
+            .first()
+        )
 
         print("\n=== User Activity Summary ===")
         print(f"Total Sessions: {user_stats.total_sessions}")
@@ -318,24 +326,34 @@ def example_7_analytics_queries(user_id):
         print(f"Total Tokens: {user_stats.total_tokens}")
 
         # Agent performance
-        agent_perf = db.query(
-            Answer.agent_name,
-            func.count(Answer.id).label('responses'),
-            func.avg(Answer.tokens_used).label('avg_tokens'),
-            func.avg(Answer.response_time_ms).label('avg_response_time')
-        ).group_by(Answer.agent_name).all()
+        agent_perf = (
+            db.query(
+                Answer.agent_name,
+                func.count(Answer.id).label("responses"),
+                func.avg(Answer.tokens_used).label("avg_tokens"),
+                func.avg(Answer.response_time_ms).label("avg_response_time"),
+            )
+            .group_by(Answer.agent_name)
+            .all()
+        )
 
         print("\n=== Agent Performance ===")
         for agent in agent_perf:
-            print(f"{agent.agent_name}: {agent.responses} responses, "
-                  f"avg {agent.avg_tokens:.0f} tokens, "
-                  f"avg {agent.avg_response_time:.0f}ms")
+            print(
+                f"{agent.agent_name}: {agent.responses} responses, "
+                f"avg {agent.avg_tokens:.0f} tokens, "
+                f"avg {agent.avg_response_time:.0f}ms"
+            )
 
         # Recent questions with full-text search
-        search_term = 'ancient doctor'
-        recent_questions = db.query(Question).filter(
-            Question.content.ilike(f'%{search_term}%')
-        ).order_by(desc(Question.asked_at)).limit(5).all()
+        search_term = "ancient doctor"
+        recent_questions = (
+            db.query(Question)
+            .filter(Question.content.ilike(f"%{search_term}%"))
+            .order_by(desc(Question.asked_at))
+            .limit(5)
+            .all()
+        )
 
         print(f"\n=== Questions matching '{search_term}' ===")
         for q in recent_questions:
@@ -351,9 +369,7 @@ def example_8_state_queries(_session_id):
 
     try:
         # Find sessions with specific state key
-        sessions_with_plot = db.query(Session).filter(
-            Session.state.has_key('PLOT_OUTLINE')
-        ).all()
+        sessions_with_plot = db.query(Session).filter(Session.state.has_key("PLOT_OUTLINE")).all()
 
         print("\n=== Sessions with PLOT_OUTLINE ===")
         for s in sessions_with_plot:
@@ -362,9 +378,9 @@ def example_8_state_queries(_session_id):
         # Query by state value (containment)
         # Note: Use SQLAlchemy's JSONB operators
 
-        sessions_with_research = db.query(Session).filter(
-            Session.state['research'].astext.contains('Zhang')
-        ).all()
+        sessions_with_research = (
+            db.query(Session).filter(Session.state["research"].astext.contains("Zhang")).all()
+        )
 
         print("\n=== Sessions with Zhang in research ===")
         for s in sessions_with_research:
@@ -380,24 +396,23 @@ def example_9_partition_queries(session_id):
 
     try:
         # Query events for specific session (partition pruning)
-        events = db.query(Event).filter(
-            and_(
-                Event.session_id == session_id,
-                Event.created_at >= datetime(2025, 1, 1)
-            )
-        ).order_by(Event.created_at).all()
+        events = (
+            db.query(Event)
+            .filter(and_(Event.session_id == session_id, Event.created_at >= datetime(2025, 1, 1)))
+            .order_by(Event.created_at)
+            .all()
+        )
 
         print("\n=== Session Events (Jan 2025) ===")
         for e in events:
             print(f"  {e.created_at}: {e.event_type} - {e.agent_name}")
 
         # Query tool calls only
-        tool_calls = db.query(Event).filter(
-            and_(
-                Event.session_id == session_id,
-                Event.event_type == 'tool_call'
-            )
-        ).all()
+        tool_calls = (
+            db.query(Event)
+            .filter(and_(Event.session_id == session_id, Event.event_type == "tool_call"))
+            .all()
+        )
 
         print(f"\nTotal tool calls: {len(tool_calls)}")
         for tc in tool_calls:
@@ -444,7 +459,7 @@ def example_10_complete_workflow():
     print(f"Film Project ID: {film_id}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Run examples
     print("Database Examples for Multi-Agent Filmmaking System\n")
 

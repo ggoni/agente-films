@@ -60,7 +60,9 @@ async def send_message(
         except Exception as e:
             # Log unexpected errors
             print(f"Error processing message: {e}")
-            raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}") from e
+            raise HTTPException(
+                status_code=500, detail=f"Error processing message: {str(e)}"
+            ) from e
 
         return MessageResponse(
             response=result["response"],

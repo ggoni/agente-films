@@ -79,9 +79,7 @@ class LiteLLMClient:
                 "total_tokens": response.usage.total_tokens,
             }
 
-            logger.info(
-                f"Completion successful. Tokens used: {usage['total_tokens']}"
-            )
+            logger.info(f"Completion successful. Tokens used: {usage['total_tokens']}")
 
             return {
                 "content": content,

@@ -18,6 +18,7 @@ def check_python_version():
 def check_uv_installed():
     """Verify uv package manager is available."""
     import subprocess
+
     try:
         result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
         if result.returncode == 0:
@@ -70,6 +71,7 @@ def check_database_url():
     """Verify DATABASE_URL is configured."""
     try:
         from backend.app.config import Settings
+
         settings = Settings()
         if settings.DATABASE_URL:
             print("✅ DATABASE_URL configured")
