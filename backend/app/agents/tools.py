@@ -7,12 +7,12 @@ import wikipedia
 from backend.app.agents.base import log_query, log_response
 
 
-def wikipedia_search(tool_context: Any, query: str) -> dict[str, Any]:
+def wikipedia_search(_tool_context: Any, query: str) -> dict[str, Any]:
     """
     Search Wikipedia for information on a topic.
 
     Args:
-        tool_context: Context provided by the agent framework
+        _tool_context: Context provided by the agent framework (unused)
         query: Search query string
 
     Returns:
@@ -69,13 +69,13 @@ def append_to_state(tool_context: Any, key: str, content: str) -> dict[str, str]
 
 
 def write_file(
-    tool_context: Any, filename: str, directory: str, content: str
+    _tool_context: Any, filename: str, directory: str, content: str
 ) -> dict[str, Any]:
     """
     Write content to a file in the specified directory.
 
     Args:
-        tool_context: Context provided by the agent framework
+        _tool_context: Context provided by the agent framework (unused)
         filename: Base filename (without extension, .txt will be added)
         directory: Directory path to write file to
         content: Content to write to the file
