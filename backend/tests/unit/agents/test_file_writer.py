@@ -1,6 +1,5 @@
 """Unit tests for file_writer agent."""
 
-from typing import Any
 
 
 def test_file_writer_agent_created() -> None:

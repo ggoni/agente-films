@@ -2,7 +2,6 @@
 
 from uuid import uuid4
 
-import pytest
 from sqlalchemy.orm import Session as DBSession
 
 from backend.app.db.repositories.session import SessionRepository

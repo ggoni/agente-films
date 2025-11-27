@@ -3,8 +3,6 @@
 from typing import Any
 from unittest.mock import Mock
 
-import pytest
-
 
 def test_wikipedia_search_returns_dict(mocker: Any) -> None:
     """Test that wikipedia_search returns success dict."""

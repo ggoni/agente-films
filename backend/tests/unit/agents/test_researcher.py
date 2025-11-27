@@ -1,7 +1,5 @@
 """Unit tests for researcher agent."""
 
-import pytest
-from google.genai.types import Tool
 
 
 def test_researcher_agent_created() -> None:

@@ -2,7 +2,6 @@
 """Test script to verify multi-model LiteLLM setup."""
 
 import asyncio
-import os
 import sys
 
 import httpx

@@ -1,6 +1,5 @@
 """Unit tests for database base module."""
 
-import pytest
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 

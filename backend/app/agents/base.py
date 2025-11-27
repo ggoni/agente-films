@@ -2,7 +2,6 @@
 
 import logging
 import os
-from typing import Any
 
 from backend.app.config import Settings
 
