@@ -1,6 +1,7 @@
 """Integration tests for Agent Message API endpoints."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 from httpx import AsyncClient
 
@@ -18,15 +19,15 @@ async def test_send_message_integration(async_client: AsyncClient):
     with patch("backend.app.core.adk_runner.ADKRunner.run") as mock_run:
         # Configure mock to return the response string directly
         mock_run.return_value = "Hello! I am the film agent."
-        
+
         payload = {"message": "Hi, let's make a movie"}
         response = await async_client.post(f"/sessions/{session_id}/messages", json=payload)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert data["session_id"] == session_id
         assert data["response"] == "Hello! I am the film agent."
-        
+
         # Verify ADK runner was called
         mock_run.assert_called_once()
 
@@ -37,9 +38,9 @@ async def test_send_message_session_not_found(async_client: AsyncClient):
     import uuid
     fake_id = str(uuid.uuid4())
     payload = {"message": "Hello"}
-    
+
     response = await async_client.post(f"/sessions/{fake_id}/messages", json=payload)
-    
+
     # SessionService raises ValueError for missing session, which might bubble up as 500
     # or be handled. Let's check what the API returns.
     # The API code catches Exception and returns 500.

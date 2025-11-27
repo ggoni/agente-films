@@ -100,17 +100,17 @@ class ADKRunner:
         Execute the real agent workflow using LiteLLM.
         """
         from litellm import completion
+
+        from backend.app.agents.critic import critic
         from backend.app.agents.greeter import greeter
         from backend.app.agents.researcher import researcher
         from backend.app.agents.screenwriter import screenwriter
-        from backend.app.agents.critic import critic
         from backend.app.config import Settings
-        
+
         settings = Settings()
-        
+
         thoughts = []
-        context = {}
-        
+
         # Helper to run an agent step
         async def run_agent_step(agent_name: str, agent_obj: Any, input_text: str) -> str:
             thoughts.append({
@@ -161,20 +161,20 @@ class ADKRunner:
                 return f"Error executing {agent_name}: {str(e)}"
 
         # 1. Greeter
-        greeter_response = await run_agent_step("greeter", greeter, message)
-        
+        await run_agent_step("greeter", greeter, message)
+
         # 2. Researcher (if needed, for now we run it sequentially)
         research_query = f"Research context for: {message}"
         research_response = await run_agent_step("researcher", researcher, research_query)
-        
+
         # 3. Screenwriter
         screenplay_input = f"Create a film concept based on this research:\n\n{research_response}"
         screenplay_response = await run_agent_step("screenwriter", screenwriter, screenplay_input)
-        
+
         # 4. Critic
         critic_input = f"Critique this film concept:\n\n{screenplay_response}"
         critic_response = await run_agent_step("critic", critic, critic_input)
-        
+
         final_response = f"""
 # Film Concept Pitch
 
@@ -184,7 +184,7 @@ class ADKRunner:
 **Critic's Notes:**
 {critic_response}
 """
-        
+
         return {
             "response": final_response,
             "thoughts": thoughts

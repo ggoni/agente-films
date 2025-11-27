@@ -1,6 +1,7 @@
 """Unit tests for configuration module."""
 
 import pytest
+
 from backend.app.config import Settings
 
 

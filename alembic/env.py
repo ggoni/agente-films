@@ -2,8 +2,7 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -12,6 +11,7 @@ sys.path.append(os.getcwd())
 
 from backend.app.config import Settings
 from backend.app.db.base import Base
+
 # Import all models to ensure they are registered
 from backend.app.db.models import *  # noqa
 
