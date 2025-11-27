@@ -56,11 +56,11 @@ async def send_message(
         except ValueError as ve:
             # Session not found
             print(f"Session not found: {ve}")
-            raise HTTPException(status_code=404, detail=str(ve))
+            raise HTTPException(status_code=404, detail=str(ve)) from ve
         except Exception as e:
             # Log unexpected errors
             print(f"Error processing message: {e}")
-            raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error processing message: {str(e)}") from e
 
         return MessageResponse(
             response=result["response"],
